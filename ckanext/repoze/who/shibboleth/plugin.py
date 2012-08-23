@@ -1,10 +1,11 @@
 import logging
-
+from webob import Request, Response
 from zope.interface import implements, directlyProvides
 from repoze.who.interfaces import IIdentifier
 from repoze.who.plugins.auth_tkt import AuthTktCookiePlugin
 from repoze.who.interfaces import IChallengeDecider
 from ckan.model import User, Session, meta
+from routes import url_for
 
 log = logging.getLogger("ckanext.repoze")
 
@@ -27,26 +28,48 @@ class ShibbolethIdentifierPlugin(AuthTktCookiePlugin, ShibbolethBase):
         self.name = name
     
     def identify(self, environ):
-        log.info("Trying to authenticate with shibboleth")
-        log.info('environ AUTH TYPE: %s', environ.get('AUTH_TYPE', 'None'))
-        log.info('environ Shib-Session-ID: %s', environ.get(self.session, 'None'))
-        log.info('environ mail: %s', environ.get(self.mail, 'None'))
-        log.info('environ cn: %s', environ.get(self.name, 'None'))
-        
         user = None
-
-        if self.is_shib_session(environ):
+        
+        request = Request(environ)
+        log.info(request.path)
+        
+        # Logout user
+        if request.path == url_for(controller='user', action='logout'):
+            response = Response()
+            
+            for a,v in self.forget(environ,{}):
+                response.headers.add(a,v)
+            
+            response.status = 302
+            response.location = url_for(controller='user', action='logged_out')
+            environ['repoze.who.application'] = response
+            
+            return {}
+        
+        # Login user, if there's shibboleth headers and path is shiblogin
+        if self.is_shib_session(environ) and 'shiblogin' in request.path:
+            log.info("Trying to authenticate with shibboleth")
+            log.info('environ AUTH TYPE: %s', environ.get('AUTH_TYPE', 'None'))
+            log.info('environ Shib-Session-ID: %s', environ.get(self.session, 'None'))
+            log.info('environ mail: %s', environ.get(self.mail, 'None'))
+            log.info('environ cn: %s', environ.get(self.name, 'None'))
+        
             logging.warning("Found shibboleth session")
             user = self._get_or_create_user(environ)
 
-        if not user:
-            return None
-        
-        return {'repoze.who.plugins.openid.userid':user.openid,
-                'login':user.email,
-                'password':'',
-                'email':user.email,
-                'fullname':user.email}
+            if not user:
+                return None
+            
+            response = Response()
+            response.status = 302
+            response.location = url_for(controller='user', action='dashboard')
+            environ['repoze.who.application'] = response
+            
+            return {'repoze.who.plugins.openid.userid':user.openid,
+                    'login':user.email,
+                    'password':'',
+                    'email':user.email,
+                    'fullname':user.email}
             
         return None
     
@@ -106,14 +129,3 @@ class ShibbolethIdentifierPlugin(AuthTktCookiePlugin, ShibbolethBase):
         logging.info("Forgetting %r" % identity)
         return rememberer and rememberer.forget(environ, identity)
 
-def shibboleth_challenge_decider(environ, status, headers):
-    if status.startswith('401 '):
-        return True
-    elif 'ckan.who.shibboleth.challenge' in environ:
-        return True
-    elif 'repoze.whoplugins.openid.openid' in environ:
-        return True
-
-    return False
-
-directlyProvides(shibboleth_challenge_decider, IChallengeDecider)
