@@ -5,15 +5,20 @@ Shibboleth authentication plugin for CKAN
 
 Install
 -------
-  pip install -e git+git://github.com/harripal/ckanext-shibboleth.git#egg=ckanext-shibboleth
+	pip install -e git+git://github.com/harripal/ckanext-shibboleth.git#egg=ckanext-shibboleth
 	
 Nosetests
 ---------
-	$ cd ~/pyenv/src/ckan
-	$ nosetests --ckan ../ckanext-shibboleth/tests
+	$ python setup.py nosetests
 	
 Plugin configuration
 --------------------
+pyenv/src/ckan/development.ini
+
+	...
+	ckan.plugins = shibboleth
+	...
+
 pyenv/src/ckan/who.ini
 
 	[plugin:shibboleth]

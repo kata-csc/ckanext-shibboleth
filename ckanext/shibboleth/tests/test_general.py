@@ -1,10 +1,5 @@
 import unittest
-import json
-
-from ckan.model import Session, Package, User
-import ckan.model as model
-from ckan.tests import CreateTestData
-from ckan.tests.functional.base import FunctionalTestCase
+from ckan.model import Session, User
 from ckanext.repoze.who.shibboleth.plugin import make_identification_plugin, SHIBBOLETH
 
 SESSION_FIELD = 'Shib-Session-ID'

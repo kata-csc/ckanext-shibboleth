@@ -1,15 +1,10 @@
 import logging
 
 from zope.interface import implements, directlyProvides
-from webob import Request, Response
-from repoze.who.interfaces import IIdentifier, IAuthenticator
+from repoze.who.interfaces import IIdentifier
 from repoze.who.plugins.auth_tkt import AuthTktCookiePlugin
 from repoze.who.interfaces import IChallengeDecider
-
-from ckan import model
-from ckan.model import User, Session, AuthorizationGroup, meta
-from ckan.model.authorization_group import add_user_to_authorization_group
-from ckan.model.authorization_group import remove_user_from_authorization_group
+from ckan.model import User, Session, meta
 
 log = logging.getLogger("ckanext.repoze")
 
