@@ -39,7 +39,7 @@ class TestShibbolethPlugin(unittest.TestCase):
 		self.assertEqual(self.plugin.is_shib_session(env_dict), False)
 
 	def test_identify_without_shib_session(self):
-		env = dict()
+		env = dict(PATH_INFO='/user/shiblogin')
 		identity = self.plugin.identify(env)
 
 		self.assertEqual(identity, None)
@@ -78,28 +78,49 @@ class TestShibbolethPlugin(unittest.TestCase):
 		self.assertEqual(user.name, user_2.name)
 
 	def test_identity_with_invalid_shib_session(self):
+		# Wrong login url
+		identity_1 = self.plugin.identify({'PATH_INFO':'/user/logout',
+										SESSION_FIELD:SESSION_FIELD_VAL,
+										MAIL_FIELD:u'foo@bar.com',
+										NAME_FIELD:u'Foo Bar',
+										AUTH_FIELD:'shibboleth'})
+		
 		# Wrong authentication type
-		identity_1 = self.plugin.identify({SESSION_FIELD:SESSION_FIELD_VAL, MAIL_FIELD:u'foo@bar.com', NAME_FIELD:u'Foo Bar', AUTH_FIELD:'FooAuth'})
+		identity_2 = self.plugin.identify({'PATH_INFO':'/user/shiblogin',
+										SESSION_FIELD:SESSION_FIELD_VAL,
+										MAIL_FIELD:u'foo@bar.com',
+										NAME_FIELD:u'Foo Bar',
+										AUTH_FIELD:'FooAuth'})
 		
 		# Missing name field
-		identity_2 = self.plugin.identify({SESSION_FIELD:SESSION_FIELD_VAL, MAIL_FIELD:u'foo@bar.com', AUTH_FIELD:SHIBBOLETH})
+		identity_3 = self.plugin.identify({'PATH_INFO':'/user/shiblogin',
+										SESSION_FIELD:SESSION_FIELD_VAL,
+										MAIL_FIELD:u'foo@bar.com',
+										AUTH_FIELD:SHIBBOLETH})
 		
 		# Missing mail field
-		identity_3 = self.plugin.identify({SESSION_FIELD:SESSION_FIELD_VAL, NAME_FIELD:u'Foo Bar', AUTH_FIELD:SHIBBOLETH})
+		identity_4 = self.plugin.identify({'PATH_INFO':'/user/shiblogin',
+										SESSION_FIELD:SESSION_FIELD_VAL,
+										NAME_FIELD:u'Foo Bar',
+										AUTH_FIELD:SHIBBOLETH})
 		
 		# Missing session field
-		identity_4 = self.plugin.identify({MAIL_FIELD:u'foo@bar.com', NAME_FIELD:u'Foo Bar', AUTH_FIELD:SHIBBOLETH})
+		identity_5 = self.plugin.identify({'PATH_INFO':'/user/shiblogin',
+										MAIL_FIELD:u'foo@bar.com',
+										NAME_FIELD:u'Foo Bar',
+										AUTH_FIELD:SHIBBOLETH})
 
 		self.assertEqual(identity_1, None)
 		self.assertEqual(identity_2, None)
 		self.assertEqual(identity_3, None)
 		self.assertEqual(identity_4, None)
-
+		self.assertEqual(identity_5, None)
+		
 	def test_identity_with_valid_shib_session(self):
 		mail_val = u'foo@bar.com'
 		name_val = u'Foo Bar'
 		
-		identity = self.plugin.identify({SESSION_FIELD:SESSION_FIELD_VAL, MAIL_FIELD:mail_val, NAME_FIELD:name_val, AUTH_FIELD:SHIBBOLETH})
+		identity = self.plugin.identify({'PATH_INFO':'/user/shiblogin', SESSION_FIELD:SESSION_FIELD_VAL, MAIL_FIELD:mail_val, NAME_FIELD:name_val, AUTH_FIELD:SHIBBOLETH})
 		
 		self.assertNotEqual(identity, None)
 		self.assertEqual(identity['email'], mail_val)
