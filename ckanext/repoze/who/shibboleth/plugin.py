@@ -31,7 +31,7 @@ class ShibbolethIdentifierPlugin(AuthTktCookiePlugin, ShibbolethBase):
         user = None
         
         request = Request(environ)
-        log.info(request.path)
+        log.debug(request.path)
         
         # Logout user
         if request.path == url_for(controller='user', action='logout'):
@@ -48,16 +48,16 @@ class ShibbolethIdentifierPlugin(AuthTktCookiePlugin, ShibbolethBase):
         
         # Login user, if there's shibboleth headers and path is shiblogin
         if self.is_shib_session(environ) and 'shiblogin' in request.path:
-            log.info("Trying to authenticate with shibboleth")
-            log.info('environ AUTH TYPE: %s', environ.get('AUTH_TYPE', 'None'))
-            log.info('environ Shib-Session-ID: %s', environ.get(self.session, 'None'))
-            log.info('environ mail: %s', environ.get(self.mail, 'None'))
-            log.info('environ cn: %s', environ.get(self.name, 'None'))
-        
-            logging.warning("Found shibboleth session")
+            log.debug("Trying to authenticate with shibboleth")
+            log.debug('environ AUTH TYPE: %s', environ.get('AUTH_TYPE', 'None'))
+            log.debug('environ Shib-Session-ID: %s', environ.get(self.session, 'None'))
+            log.debug('environ mail: %s', environ.get(self.mail, 'None'))
+            log.debug('environ cn: %s', environ.get(self.name, 'None'))
+            
             user = self._get_or_create_user(environ)
 
             if not user:
+                log.debug('User is None')
                 return None
             
             response = Response()
@@ -90,14 +90,14 @@ class ShibbolethIdentifierPlugin(AuthTktCookiePlugin, ShibbolethBase):
         fullname = env.get(self.name, None)
         
         if not email or not fullname:
-            log.info('Environ does not contain mail or cn attributes, user not loaded.')
+            log.debug('Environ does not contain mail or cn attributes, user not loaded.')
             return None
     
         user = meta.Session.query(User).autoflush(False) \
                     .filter_by(openid=email).first()
                     
         if user is None:
-            log.info('User does not exists, creating new one.')
+            log.debug('User does not exists, creating new one.')
         
             import re
             username = re.sub('[.@]', '_', email)
@@ -111,7 +111,7 @@ class ShibbolethIdentifierPlugin(AuthTktCookiePlugin, ShibbolethBase):
             Session.commit()
             Session.remove()
 
-            log.info("Created new user %s" % fullname)
+            log.debug("Created new user %s" % fullname)
         
         return user
 

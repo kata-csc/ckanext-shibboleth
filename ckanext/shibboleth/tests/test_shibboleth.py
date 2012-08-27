@@ -20,7 +20,14 @@ def create_plugin(kwargs={}):
 class TestShibbolethUrls(FunctionalTestCase, unittest.TestCase):
 	def setUp(self, *args, **kwargs):
 		self.plugin = create_plugin(**kwargs)
-	
+		
+	def test_extension(self):
+		resp = self.app.get('/user/login')
+		
+		self.assertEqual(resp.status, 200)
+		self.assertEqual('Shibboleth login' in resp.body, True)
+		self.assertEqual('Login - User' in resp.body, True)
+		
 	def test_login(self):
 		headers = {AUTH_FIELD:'shibboleth',
 					SESSION_FIELD:SESSION_FIELD_VAL,
