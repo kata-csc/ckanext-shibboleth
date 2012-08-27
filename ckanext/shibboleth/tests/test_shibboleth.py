@@ -1,6 +1,7 @@
 import unittest
 from ckan.model import Session, User
 from ckanext.repoze.who.shibboleth.plugin import make_identification_plugin, SHIBBOLETH
+from ckan.tests.functional.base import FunctionalTestCase
 
 SESSION_FIELD = 'Shib-Session-ID'
 SESSION_FIELD_VAL = '_7ec5a681e6dbae627c1cefcc7cb4d56a'
@@ -8,19 +9,45 @@ MAIL_FIELD = 'mail'
 NAME_FIELD = 'cn'
 AUTH_FIELD = 'AUTH_TYPE'
 
+def create_plugin(kwargs={}):
+	defaults = kwargs
+	defaults['session'] = SESSION_FIELD
+	defaults['mail'] = MAIL_FIELD
+	defaults['name'] = NAME_FIELD
+	
+	return make_identification_plugin(**defaults)
+
+class TestShibbolethUrls(FunctionalTestCase, unittest.TestCase):
+	def setUp(self, *args, **kwargs):
+		self.plugin = create_plugin(**kwargs)
+	
+	def test_login(self):
+		headers = {AUTH_FIELD:'shibboleth',
+					SESSION_FIELD:SESSION_FIELD_VAL,
+					MAIL_FIELD:'foolish@bar.com',
+					NAME_FIELD:'Fool Bar'}
+		
+		resp = self.app.get('/user/shiblogin', extra_environ=headers)
+		self.assertEqual(self.app.get('/user/dashboard').status, 200)
+		
+	
+	def test_logout(self):
+		headers = {AUTH_FIELD:'shibboleth',
+					SESSION_FIELD:SESSION_FIELD_VAL,
+					MAIL_FIELD:'foolish@bar.com',
+					NAME_FIELD:'Fool Bar'}
+		
+		resp = self.app.get('/user/shiblogin', extra_environ=headers)
+		self.assertEqual(self.app.get('/user/dashboard').status, 200)
+		
+		resp = self.app.get('/user/_logout').follow()
+		self.assertEqual(self.app.get('/user/dashboard').status, 302)
+
 class TestShibbolethPlugin(unittest.TestCase):
 	plugin = None
 
 	def setUp(self, *args, **kwargs):
-		self.plugin = self._create_plugin(**kwargs)
-
-	def _create_plugin(self, **kwargs):
-		defaults = kwargs
-		defaults['session'] = SESSION_FIELD
-		defaults['mail'] = MAIL_FIELD
-		defaults['name'] = NAME_FIELD
-		
-		return make_identification_plugin(**defaults)
+		self.plugin = create_plugin(**kwargs)
     
 	def test_plugin_field_names(self):
 		self.assertNotEqual(self.plugin, None)
@@ -134,6 +161,8 @@ class TestShibbolethPlugin(unittest.TestCase):
 			
 	def test_forget(self):
 		self.assertEqual(self.plugin.forget({}, {}), None)
+		
+		
 		
 		
 		

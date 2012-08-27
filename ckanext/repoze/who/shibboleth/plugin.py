@@ -121,11 +121,9 @@ class ShibbolethIdentifierPlugin(AuthTktCookiePlugin, ShibbolethBase):
 
     def remember(self, environ, identity):
         rememberer = self._get_rememberer(environ)
-        logging.info("Remembering %r" % identity)
         return rememberer and rememberer.remember(environ, identity)
 
     def forget(self, environ, identity):
         rememberer = self._get_rememberer(environ)
-        logging.info("Forgetting %r" % identity)
         return rememberer and rememberer.forget(environ, identity)
 
