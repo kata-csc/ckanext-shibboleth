@@ -52,6 +52,7 @@ shibboleth sp
 -------------
 If you can login to IdP but CKAN is not logging you in, try removing REMOTE_USER from 
 ApplicationDefaults in /etc/shibboleth/shibboleth2.xml, this should work:
+
 	<ApplicationDefaults entityID="https://sp.mydomain.com/shibboleth">
 
 
