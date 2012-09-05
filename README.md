@@ -20,6 +20,7 @@ pyenv/src/ckan/development.ini:
 	...
 
 pyenv/src/ckan/who.ini:
+
 	[plugin:shibboleth]
 	use = ckanext.repoze.who.shibboleth.plugin:make_identification_plugin
 	session = Shib-Session-ID
