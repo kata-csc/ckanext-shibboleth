@@ -1,7 +1,7 @@
 ckanext-shibboleth
 ==================
 
-Shibboleth authentication plugin for CKAN
+Shibboleth identification plugin for CKAN. Uses repoze.who.openid plugin for authentication.
 
 Install
 -------
@@ -13,13 +13,13 @@ Nosetests
 	
 Plugin configuration
 --------------------
-pyenv/src/ckan/development.ini
+pyenv/src/ckan/development.ini:
 
 	...
 	ckan.plugins = shibboleth
 	...
 
-pyenv/src/ckan/who.ini
+pyenv/src/ckan/who.ini:
 
 	[plugin:shibboleth]
 	use = ckanext.repoze.who.shibboleth.plugin:make_identification_plugin
@@ -33,8 +33,8 @@ pyenv/src/ckan/who.ini
 
 	[identifiers]
 	plugins =
-		friendlyform;browser
 		shibboleth
+		friendlyform;browser
 		openid
 		auth_tkt
 
@@ -47,3 +47,12 @@ pyenv/src/ckan/who.ini
 	plugins =
 		openid
 		friendlyform;browser
+
+shibboleth sp
+-------------
+If you can login to IdP but CKAN is not logging you in, try removing REMOTE_USER from 
+ApplicationDefaults in /etc/shibboleth/shibboleth2.xml, this should work:
+
+	<ApplicationDefaults entityID="https://sp.mydomain.com/shibboleth">
+
+

@@ -26,15 +26,21 @@ class ShibbolethIdentifierPlugin(AuthTktCookiePlugin, ShibbolethBase):
         self.session = session
         self.mail = mail
         self.name = name
+        
+        controller = 'ckanext.repoze.who.shibboleth.controller:ShibbolethController'
+        self.login_url = url_for(controller=controller, action='shiblogin')
+        self.logout_url = url_for(controller='user', action='logout')
     
     def identify(self, environ):
-        user = None
-        
+        user = {}
         request = Request(environ)
-        log.debug(request.path)
+        
+        log.debug('Request path: %s' % request.path)
+        log.debug(request)
+        log.debug(environ)
         
         # Logout user
-        if request.path == url_for(controller='user', action='logout'):
+        if request.path == self.logout_url:
             response = Response()
             
             for a,v in self.forget(environ,{}):
@@ -47,7 +53,7 @@ class ShibbolethIdentifierPlugin(AuthTktCookiePlugin, ShibbolethBase):
             return {}
         
         # Login user, if there's shibboleth headers and path is shiblogin
-        if self.is_shib_session(environ) and 'shiblogin' in request.path:
+        if self.is_shib_session(environ) and request.path == self.login_url:
             log.debug("Trying to authenticate with shibboleth")
             log.debug('environ AUTH TYPE: %s', environ.get('AUTH_TYPE', 'None'))
             log.debug('environ Shib-Session-ID: %s', environ.get(self.session, 'None'))
@@ -58,7 +64,7 @@ class ShibbolethIdentifierPlugin(AuthTktCookiePlugin, ShibbolethBase):
 
             if not user:
                 log.debug('User is None')
-                return None
+                return {}
             
             response = Response()
             response.status = 302
@@ -71,7 +77,7 @@ class ShibbolethIdentifierPlugin(AuthTktCookiePlugin, ShibbolethBase):
                     'email':user.email,
                     'fullname':user.email}
             
-        return None
+        return {}
     
     def _get_or_create_user(self, env):
         #WSGI Variables
