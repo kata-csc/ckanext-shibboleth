@@ -26,25 +26,6 @@ class TestShibbolethUrls(FunctionalTestCase, unittest.TestCase):
 	def setUp(self, *args, **kwargs):
 		self.plugin = create_plugin(**kwargs)
 		
-	def test_extension(self):
-		# Login path
-		resp = self.app.get('/user/login')
-		
-		self.assertEqual(resp.status, 200)
-		self.assertEqual('Shibboleth login' in resp.body, True)
-		
-		# Register path
-		resp = self.app.get('/user/register')
-		
-		self.assertEqual(resp.status, 200)
-		self.assertEqual('Shibboleth login' in resp.body, True)
-		
-		# Logout path
-		resp = self.app.get('/user/logged_out_redirect')
-		
-		self.assertEqual(resp.status, 200)
-		self.assertEqual('Shibboleth login' in resp.body, True)
-		
 	def test_login(self):
 		headers = {AUTH_FIELD:'shibboleth',
 					SESSION_FIELD:SESSION_FIELD_VAL,

@@ -20,17 +20,6 @@ class CkanShibbolethPlugin(SingletonPlugin):
     implements(IGenshiStreamFilter)
     implements(IConfigurer)
 
-    def filter(self, stream):
-        routes = request.environ.get('pylons.routes_dict')
-        from ckan.lib.base import request as req
-        
-        if req.path in shib_urls():
-            shtml = '<li class=""><a href="%s">Shibboleth login</a></li>' % url_for(controller='ckanext.repoze.who.shibboleth.controller:ShibbolethController', action='shiblogin')
-            
-            stream = stream | Transformer('//ul[@class="nav nav-pills"]').append(HTML(shtml))
-        
-        return stream
-
     def update_config(self, config):
         """This IConfigurer implementation causes CKAN to look in the
         ```public``` and ```templates``` directories present in this

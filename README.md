@@ -1,7 +1,7 @@
 ckanext-shibboleth
 ==================
 
-Shibboleth identification plugin for CKAN. Uses repoze.who.openid plugin for authentication.
+Shibboleth identification plugin for CKAN 2.0a. Uses repoze.who.openid plugin for authentication.
 
 Install
 -------
