@@ -7,7 +7,7 @@ from repoze.who.interfaces import IChallengeDecider
 from ckan.model import User, Session, meta
 from routes import url_for
 
-log = logging.getLogger("ckanext.repoze")
+#log = logging.getLogger("ckanext.repoze")
 
 SHIBBOLETH = 'shibboleth'
 
@@ -35,9 +35,9 @@ class ShibbolethIdentifierPlugin(AuthTktCookiePlugin, ShibbolethBase):
         user = {}
         request = Request(environ)
         
-        log.debug('Request path: %s' % request.path)
-        log.debug(request)
-        log.debug(environ)
+#        log.debug('Request path: %s' % request.path)
+#        log.debug(request)
+#        log.debug(environ)
         
         # Logout user
         if request.path == self.logout_url:
@@ -54,16 +54,16 @@ class ShibbolethIdentifierPlugin(AuthTktCookiePlugin, ShibbolethBase):
         
         # Login user, if there's shibboleth headers and path is shiblogin
         if self.is_shib_session(environ) and request.path == self.login_url:
-            log.debug("Trying to authenticate with shibboleth")
-            log.debug('environ AUTH TYPE: %s', environ.get('AUTH_TYPE', 'None'))
-            log.debug('environ Shib-Session-ID: %s', environ.get(self.session, 'None'))
-            log.debug('environ mail: %s', environ.get(self.mail, 'None'))
-            log.debug('environ cn: %s', environ.get(self.name, 'None'))
+#            log.debug("Trying to authenticate with shibboleth")
+#            log.debug('environ AUTH TYPE: %s', environ.get('AUTH_TYPE', 'None'))
+#            log.debug('environ Shib-Session-ID: %s', environ.get(self.session, 'None'))
+#            log.debug('environ mail: %s', environ.get(self.mail, 'None'))
+#            log.debug('environ cn: %s', environ.get(self.name, 'None'))
             
             user = self._get_or_create_user(environ)
 
             if not user:
-                log.debug('User is None')
+#                log.debug('User is None')
                 return {}
             
             response = Response()
@@ -96,14 +96,14 @@ class ShibbolethIdentifierPlugin(AuthTktCookiePlugin, ShibbolethBase):
         fullname = env.get(self.name, None)
         
         if not email or not fullname:
-            log.debug('Environ does not contain mail or cn attributes, user not loaded.')
+#            log.debug('Environ does not contain mail or cn attributes, user not loaded.')
             return None
     
         user = meta.Session.query(User).autoflush(False) \
                     .filter_by(openid=email).first()
                     
         if user is None:
-            log.debug('User does not exists, creating new one.')
+#            log.debug('User does not exists, creating new one.')
         
             import re
             username = re.sub('[.@]', '_', email)
@@ -117,7 +117,7 @@ class ShibbolethIdentifierPlugin(AuthTktCookiePlugin, ShibbolethBase):
             Session.commit()
             Session.remove()
 
-            log.debug("Created new user %s" % fullname)
+#            log.debug("Created new user %s" % fullname)
         
         return user
 

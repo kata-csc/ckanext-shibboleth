@@ -7,7 +7,7 @@ from pylons import request
 import os
 
 import logging
-log = logging.getLogger("ckanext.repoze")
+#log = logging.getLogger("ckanext.repoze")
 
 def shib_urls():
     return [url_for(controller='user', action='login'),
