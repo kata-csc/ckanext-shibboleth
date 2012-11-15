@@ -17,7 +17,6 @@ def shib_urls():
 
 class CkanShibbolethPlugin(SingletonPlugin):
     implements(IRoutes, inherit=True)
-    implements(IGenshiStreamFilter)
     implements(IConfigurer)
 
     def update_config(self, config):
