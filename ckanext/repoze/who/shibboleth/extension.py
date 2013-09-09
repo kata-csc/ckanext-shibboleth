@@ -37,7 +37,10 @@ class CkanShibbolethPlugin(SingletonPlugin):
 
     def before_map(self, map):
         controller = 'ckanext.repoze.who.shibboleth.controller:ShibbolethController'
-        map.connect('shibboleth', '/shibboleth/login', controller=controller, action='shiblogin')
+        map.connect('shibboleth',
+                    '/shibboleth/login',
+                    controller=controller,
+                    action='shiblogin')
         return map
     
     def after_map(self, map):

@@ -1,3 +1,5 @@
+# -*- coding: utf8 -*-
+
 import logging
 from webob import Request, Response
 from zope.interface import implements, directlyProvides
@@ -7,7 +9,7 @@ from repoze.who.interfaces import IChallengeDecider
 from ckan.model import User, Session, meta
 from routes import url_for
 
-#log = logging.getLogger("ckanext.repoze")
+log = logging.getLogger("ckanext.repoze")
 
 SHIBBOLETH = 'shibboleth'
 
@@ -22,10 +24,17 @@ class ShibbolethBase(object):
 class ShibbolethIdentifierPlugin(AuthTktCookiePlugin, ShibbolethBase):
     implements(IIdentifier)
     
-    def __init__(self, session, mail, name, *args, **kwargs):
+    def __init__(self, session, eppn, mail, fullname, firstname, surname,
+                 organization, mobile, telephone, *args, **kwargs):
         self.session = session
+        self.eppn = eppn
         self.mail = mail
-        self.name = name
+        self.fullname = fullname
+        self.firstname = firstname
+        self.surname = surname
+        self.organization = organization
+        self.mobile = mobile
+        self.telephone = telephone
         
         controller = 'ckanext.repoze.who.shibboleth.controller:ShibbolethController'
         self.login_url = url_for(controller=controller, action='shiblogin')
@@ -38,7 +47,7 @@ class ShibbolethIdentifierPlugin(AuthTktCookiePlugin, ShibbolethBase):
 #        log.debug('Request path: %s' % request.path)
 #        log.debug(request)
 #        log.debug(environ)
-        
+
         # Logout user
         if request.path == self.logout_url:
             response = Response()
@@ -68,7 +77,7 @@ class ShibbolethIdentifierPlugin(AuthTktCookiePlugin, ShibbolethBase):
             
             response = Response()
             response.status = 302
-            response.location = url_for(controller='user', action='dashboard')
+            response.location = url_for(controller='user', action='read')
             environ['repoze.who.application'] = response
             
             return {'repoze.who.plugins.openid.userid':user.openid,
@@ -91,33 +100,37 @@ class ShibbolethIdentifierPlugin(AuthTktCookiePlugin, ShibbolethBase):
         #cn                             'My Other Self'
         #givenName                      'My Other Self'
         #mail                           'myother@self.com'
-        
+
+        eppn = env.get(self.eppn, None)
+        fullname = env.get(self.fullname, None)
         email = env.get(self.mail, None)
-        fullname = env.get(self.name, None)
-        
-        if not email or not fullname:
-#            log.debug('Environ does not contain mail or cn attributes, user not loaded.')
+
+        if not eppn or not fullname:
+            log.debug('Environ does not contain eppn or cn attributes, user not loaded.')
             return None
     
         user = meta.Session.query(User).autoflush(False) \
-                    .filter_by(openid=email).first()
+                    .filter_by(openid=eppn).first()
                     
         if user is None:
-#            log.debug('User does not exists, creating new one.')
-        
-            import re
-            username = re.sub('[.@]', '_', email)
-        
+            log.debug('User does not exists, creating new one.')
+
+            username = unicode(fullname, errors='ignore').lower().replace(' ', '_')
+            suffix = 0
+            while not User.check_name_available(username):
+                 suffix += 1
+                 username =  fullname + suffix
+
             user = User(name     = username,
                         fullname = fullname,
                         email    = email,
-                        openid   = email)
+                        openid   = eppn)
             
             Session.add(user)
             Session.commit()
             Session.remove()
 
-#            log.debug("Created new user %s" % fullname)
+            log.debug("Created new user %s" % fullname)
         
         return user
 
