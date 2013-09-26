@@ -1,15 +1,22 @@
 # -*- coding: utf8 -*-
 
 import logging
-from webob import Request, Response
-from zope.interface import implements, directlyProvides
+
+from repoze.who.interfaces import IChallengeDecider
 from repoze.who.interfaces import IIdentifier
 from repoze.who.plugins.auth_tkt import AuthTktCookiePlugin
-from repoze.who.interfaces import IChallengeDecider
-from ckan.model import User, Session, meta
 from routes import url_for
+from webob import Request, Response
+from zope.interface import implements, directlyProvides
 
-log = logging.getLogger("ckanext.repoze")
+import ckan.model as m
+import ckan.plugins as plugins
+import ckanext.kata.model as km
+import ckanext.shibboleth.actions as actions
+import ckanext.shibboleth.utils as u
+
+from pprint import pprint as p
+log = logging.getLogger("ckanext.repoze.who.shibboleth")
 
 SHIBBOLETH = 'shibboleth'
 
@@ -21,21 +28,40 @@ class ShibbolethBase(object):
     def is_shib_session(self, env):
         return env.get(self.session, False) and env.get('AUTH_TYPE', '') == SHIBBOLETH
 
+class ShibbolethGeneralPlugin(plugins.SingletonPlugin):
+    """
+    A plugin for general methods not related to the identification or
+    authentication tasks of ckanext-shibboleth.
+    """
+    plugins.implements(plugins.IActions, inherit=True)
+
+    def get_actions(self):
+        """ Register actions. """
+        return {'user_show': actions.user_show,
+                'user_update': actions.user_update,
+#                'user_create': actions.user_create,
+        }
+
 class ShibbolethIdentifierPlugin(AuthTktCookiePlugin, ShibbolethBase):
     implements(IIdentifier)
     
-    def __init__(self, session, eppn, mail, fullname, firstname, surname,
-                 organization, mobile, telephone, *args, **kwargs):
+    def __init__(self, session, eppn, mail, fullname, **kwargs):
+        '''
+        Parameters here contain just names of the environment attributes defined
+        in who.ini, not their values:
+        @param session: 'Shib-Session-ID'
+        @param eppn: 'eppn'
+        @param organization: 'schacHomeOrganization'
+        etc.
+        '''
         self.session = session
         self.eppn = eppn
         self.mail = mail
         self.fullname = fullname
-        self.firstname = firstname
-        self.surname = surname
-        self.organization = organization
-        self.mobile = mobile
-        self.telephone = telephone
-        
+        self.extra_keys = {}
+        for field in u.EXTRAS:
+            self.extra_keys[field] = kwargs.get(field, None)
+
         controller = 'ckanext.repoze.who.shibboleth.controller:ShibbolethController'
         self.login_url = url_for(controller=controller, action='shiblogin')
         self.logout_url = url_for(controller='user', action='logout')
@@ -46,7 +72,8 @@ class ShibbolethIdentifierPlugin(AuthTktCookiePlugin, ShibbolethBase):
         
 #        log.debug('Request path: %s' % request.path)
 #        log.debug(request)
-#        log.debug(environ)
+#        log.debug('environ:')
+#        p(environ)
 
         # Logout user
         if request.path == self.logout_url:
@@ -68,7 +95,7 @@ class ShibbolethIdentifierPlugin(AuthTktCookiePlugin, ShibbolethBase):
 #            log.debug('environ Shib-Session-ID: %s', environ.get(self.session, 'None'))
 #            log.debug('environ mail: %s', environ.get(self.mail, 'None'))
 #            log.debug('environ cn: %s', environ.get(self.name, 'None'))
-            
+
             user = self._get_or_create_user(environ)
 
             if not user:
@@ -104,34 +131,61 @@ class ShibbolethIdentifierPlugin(AuthTktCookiePlugin, ShibbolethBase):
         eppn = env.get(self.eppn, None)
         fullname = env.get(self.fullname, None)
         email = env.get(self.mail, None)
+        extras = {}
+        for field in u.EXTRAS:
+            extras[field] = env.get(self.extra_keys[field], None)
 
         if not eppn or not fullname:
             log.debug('Environ does not contain eppn or cn attributes, user not loaded.')
             return None
     
-        user = meta.Session.query(User).autoflush(False) \
+        user = m.Session.query(m.User).autoflush(False) \
                     .filter_by(openid=eppn).first()
-                    
-        if user is None:
+
+        # Check if user information from shibboleth has changed
+        if user:
+            old_extras = u.fetch_user_extra(user.id)
+            if (user.fullname != fullname or user.email != email):
+                log.debug('User attributes modified, updating.')
+                user.fullname = fullname
+                user.email = email
+            for key, val in old_extras.iteritems():
+                if extras[key] != val:
+                    log.debug('User extra attributes modified, updating.')
+                    extra = km.UserExtra.by_userid_key(user.id, key=key)
+                    extra.value = extras[key]
+
+        else: # user is None:
             log.debug('User does not exists, creating new one.')
 
             username = unicode(fullname, errors='ignore').lower().replace(' ', '_')
             suffix = 0
-            while not User.check_name_available(username):
+            while not m.User.check_name_available(username):
                  suffix += 1
                  username =  fullname + suffix
 
-            user = User(name     = username,
-                        fullname = fullname,
-                        email    = email,
-                        openid   = eppn)
+            user = m.User(name     = username,
+                          fullname = fullname,
+                          email    = email,
+                          openid   = eppn)
             
-            Session.add(user)
-            Session.commit()
-            Session.remove()
-
+            m.Session.add(user)
+            # TODO: Instead this extra table mess up, use Mapping Class ...
+            # ... Inheritance?:
+            # http://stackoverflow.com/questions/1337095/sqlalchemy-inheritance
+            # This might be unfeasible if requires tweaking CKAN user model.
+            # We need to get the user id so flush and user is written to db.
+            m.Session.flush()
+            userid = user.id
+            #new
+            for key, value in extras.iteritems():
+                if len(value):
+                    extra = km.UserExtra(user_id=userid, key=key, value=value)
+                    m.Session.add(extra)
             log.debug("Created new user %s" % fullname)
-        
+
+        m.Session.commit()
+        m.Session.remove()
         return user
 
     def _get_rememberer(self, environ):

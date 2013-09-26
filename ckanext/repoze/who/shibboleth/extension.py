@@ -1,12 +1,9 @@
-from ckan.plugins import implements, SingletonPlugin
-from ckan.plugins import IGenshiStreamFilter, IRoutes, IConfigurer
-from genshi.filters.transform import Transformer
-from genshi.input import HTML
-from routes import url_for
-from pylons import request
 import os
+from routes import url_for
 
-import logging
+import ckan.plugins as p
+
+#import logging
 #log = logging.getLogger("ckanext.repoze")
 
 def shib_urls():
@@ -15,9 +12,9 @@ def shib_urls():
             url_for(controller='user', action='logged_out_page')]
 
 
-class CkanShibbolethPlugin(SingletonPlugin):
-    implements(IRoutes, inherit=True)
-    implements(IConfigurer)
+class CkanShibbolethPlugin(p.SingletonPlugin):
+    p.implements(p.IRoutes, inherit=True)
+    p.implements(p.IConfigurer)
 
     def update_config(self, config):
         """This IConfigurer implementation causes CKAN to look in the
@@ -36,6 +33,9 @@ class CkanShibbolethPlugin(SingletonPlugin):
                 config.get('extra_template_paths', '')])
 
     def before_map(self, map):
+        """
+        Override IRoutes.before_map()
+        """
         controller = 'ckanext.repoze.who.shibboleth.controller:ShibbolethController'
         map.connect('shibboleth',
                     '/shibboleth/login',
