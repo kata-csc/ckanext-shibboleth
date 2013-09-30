@@ -2,6 +2,7 @@ import os
 from routes import url_for
 
 import ckan.plugins as p
+import ckanext.shibboleth.actions as actions
 
 #import logging
 #log = logging.getLogger("ckanext.repoze")
@@ -15,16 +16,14 @@ def shib_urls():
 class CkanShibbolethPlugin(p.SingletonPlugin):
     p.implements(p.IRoutes, inherit=True)
     p.implements(p.IConfigurer)
+    p.implements(p.IActions, inherit=True)
 
     def update_config(self, config):
-        """This IConfigurer implementation causes CKAN to look in the
-        ```public``` and ```templates``` directories present in this
-        package for any customisations.
+        """
+        This IConfigurer implementation causes CKAN to look in the
+        ```templates``` directories present in this package for any
+        customisations.
 
-        It also shows how to set the site title here (rather than in
-        the main site .ini file), and causes CKAN to use the
-        customised package form defined in ``package_form.py`` in this
-        directory.
         """
         here = os.path.dirname(__file__)
         rootdir = os.path.dirname(os.path.dirname(here))
@@ -45,3 +44,10 @@ class CkanShibbolethPlugin(p.SingletonPlugin):
     
     def after_map(self, map):
         return map
+
+    def get_actions(self):
+        """ Register actions. """
+        return {'user_show': actions.user_show,
+                'user_update': actions.user_update,
+            #   'user_create': actions.user_create,
+        }

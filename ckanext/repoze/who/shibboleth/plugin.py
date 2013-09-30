@@ -1,4 +1,4 @@
-# -*- coding: utf8 -*-
+1# -*- coding: utf8 -*-
 
 import logging
 
@@ -10,9 +10,7 @@ from webob import Request, Response
 from zope.interface import implements, directlyProvides
 
 import ckan.model as m
-import ckan.plugins as plugins
 import ckanext.kata.model as km
-import ckanext.shibboleth.actions as actions
 import ckanext.shibboleth.utils as u
 
 from pprint import pprint as p
@@ -27,20 +25,6 @@ def make_identification_plugin(**kwargs):
 class ShibbolethBase(object):
     def is_shib_session(self, env):
         return env.get(self.session, False) and env.get('AUTH_TYPE', '') == SHIBBOLETH
-
-class ShibbolethGeneralPlugin(plugins.SingletonPlugin):
-    """
-    A plugin for general methods not related to the identification or
-    authentication tasks of ckanext-shibboleth.
-    """
-    plugins.implements(plugins.IActions, inherit=True)
-
-    def get_actions(self):
-        """ Register actions. """
-        return {'user_show': actions.user_show,
-                'user_update': actions.user_update,
-#                'user_create': actions.user_create,
-        }
 
 class ShibbolethIdentifierPlugin(AuthTktCookiePlugin, ShibbolethBase):
     implements(IIdentifier)
