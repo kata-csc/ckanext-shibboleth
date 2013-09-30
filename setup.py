@@ -12,8 +12,8 @@ setup(
 	""",
 	classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
 	keywords='',
-	author=u'Harri Palojärvi',
-	author_email='harri.palojarvi@nomovok.com',
+	author=u'CSC',
+	author_email='kata-project@postit.csc.fi',
 	url='',
 	license='',
 	packages=find_packages(exclude=['ez_setup', 'tests']),

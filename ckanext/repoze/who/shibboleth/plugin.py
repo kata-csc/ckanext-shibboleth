@@ -1,7 +1,9 @@
 1# -*- coding: utf8 -*-
 
 import logging
+import pprint as pp
 
+from pylons.i18n import gettext as _
 from repoze.who.interfaces import IChallengeDecider
 from repoze.who.interfaces import IIdentifier
 from repoze.who.plugins.auth_tkt import AuthTktCookiePlugin
@@ -9,11 +11,11 @@ from routes import url_for
 from webob import Request, Response
 from zope.interface import implements, directlyProvides
 
+import ckan.lib.helpers as h
 import ckan.model as m
 import ckanext.kata.model as km
 import ckanext.shibboleth.utils as u
 
-from pprint import pprint as p
 log = logging.getLogger("ckanext.repoze.who.shibboleth")
 
 SHIBBOLETH = 'shibboleth'
@@ -51,13 +53,10 @@ class ShibbolethIdentifierPlugin(AuthTktCookiePlugin, ShibbolethBase):
         self.logout_url = url_for(controller='user', action='logout')
     
     def identify(self, environ):
-        user = {}
         request = Request(environ)
-        
 #        log.debug('Request path: %s' % request.path)
-#        log.debug(request)
-#        log.debug('environ:')
-#        p(environ)
+#        log.debug(pp.pformat(request))
+#        log.debug('environ: {env}'.format(env=pp.pformat(environ)))
 
         # Logout user
         if request.path == self.logout_url:
@@ -85,7 +84,12 @@ class ShibbolethIdentifierPlugin(AuthTktCookiePlugin, ShibbolethBase):
             if not user:
 #                log.debug('User is None')
                 return {}
-            
+
+            # TODO: Fix flash message later, maybe some other place
+            #h.flash_success(
+            #    _('Profile updated or restored from {idp}.').format(
+            #        idp=environ.get('Shib-Identity-Provider',
+            #                        'IdP not aquired')))
             response = Response()
             response.status = 302
             response.location = url_for(controller='user', action='read')
@@ -166,7 +170,7 @@ class ShibbolethIdentifierPlugin(AuthTktCookiePlugin, ShibbolethBase):
                 if len(value):
                     extra = km.UserExtra(user_id=userid, key=key, value=value)
                     m.Session.add(extra)
-            log.debug("Created new user %s" % fullname)
+            log.debug('Created new user {usr}'.format(usr=fullname))
 
         m.Session.commit()
         m.Session.remove()
