@@ -3,7 +3,7 @@
 import logging
 import pprint as pp
 
-from pylons.i18n import gettext as _
+from pylons.i18n import _
 from repoze.who.interfaces import IChallengeDecider
 from repoze.who.interfaces import IIdentifier
 from repoze.who.plugins.auth_tkt import AuthTktCookiePlugin
