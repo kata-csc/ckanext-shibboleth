@@ -1,7 +1,7 @@
 1# -*- coding: utf8 -*-
 
 import logging
-import pprint as pp
+import pprint
 
 from pylons.i18n import _
 from repoze.who.interfaces import IChallengeDecider
@@ -14,7 +14,7 @@ from zope.interface import implements, directlyProvides
 import ckan.lib.helpers as h
 import ckan.model as m
 import ckanext.kata.model as km
-import ckanext.shibboleth.utils as u
+import ckanext.shibboleth.utils as utils
 
 log = logging.getLogger("ckanext.repoze.who.shibboleth")
 
@@ -45,7 +45,7 @@ class ShibbolethIdentifierPlugin(AuthTktCookiePlugin, ShibbolethBase):
         self.mail = mail
         self.fullname = fullname
         self.extra_keys = {}
-        for field in u.EXTRAS:
+        for field in utils.EXTRAS:
             self.extra_keys[field] = kwargs.get(field, None)
 
         controller = 'ckanext.repoze.who.shibboleth.controller:ShibbolethController'
@@ -55,8 +55,8 @@ class ShibbolethIdentifierPlugin(AuthTktCookiePlugin, ShibbolethBase):
     def identify(self, environ):
         request = Request(environ)
 #        log.debug('Request path: %s' % request.path)
-#        log.debug(pp.pformat(request))
-#        log.debug('environ: {env}'.format(env=pp.pformat(environ)))
+#        log.debug(pprint.pformat(request))
+#        log.debug('environ: {env}'.format(env=pprint.pformat(environ)))
 
         # Logout user
         if request.path == self.logout_url:
@@ -120,7 +120,7 @@ class ShibbolethIdentifierPlugin(AuthTktCookiePlugin, ShibbolethBase):
         fullname = env.get(self.fullname, None)
         email = env.get(self.mail, None)
         extras = {}
-        for field in u.EXTRAS:
+        for field in utils.EXTRAS:
             extras[field] = env.get(self.extra_keys[field], None)
 
         if not eppn or not fullname:
@@ -132,14 +132,15 @@ class ShibbolethIdentifierPlugin(AuthTktCookiePlugin, ShibbolethBase):
 
         # Check if user information from shibboleth has changed
         if user:
-            old_extras = u.fetch_user_extra(user.id)
+            old_extras = utils.fetch_user_extra(user.id)
             if (user.fullname != fullname or user.email != email):
                 log.debug('User attributes modified, updating.')
                 user.fullname = fullname
                 user.email = email
             for key, val in old_extras.iteritems():
                 if extras[key] != val:
-                    log.debug('User extra attributes modified, updating.')
+                    log.debug('User extra attribute {att} modified, updating.'
+                              .format(att=key))
                     extra = km.UserExtra.by_userid_key(user.id, key=key)
                     extra.value = extras[key]
 
@@ -167,7 +168,7 @@ class ShibbolethIdentifierPlugin(AuthTktCookiePlugin, ShibbolethBase):
             userid = user.id
             #new
             for key, value in extras.iteritems():
-                if len(value):
+                if value:
                     extra = km.UserExtra(user_id=userid, key=key, value=value)
                     m.Session.add(extra)
             log.debug('Created new user {usr}'.format(usr=fullname))

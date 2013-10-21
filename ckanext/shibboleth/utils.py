@@ -5,7 +5,11 @@ import ckan.lib.dictization as d
 import ckanext.kata.model as km
 import ckanext.kata.validators as kv
 
-EXTRAS = ['firstname', 'surname', 'organization', 'mobile', 'telephone']
+EXTRAS = ['firstname',
+          'surname',
+          'organization',
+          'mobile',
+          'telephone']
 
 #log = logging.getLogger(__name__)
 
