@@ -151,9 +151,9 @@ class ShibbolethIdentifierPlugin(AuthTktCookiePlugin, ShibbolethBase):
             suffix = 0
             while not m.User.check_name_available(username):
                  suffix += 1
-                 username =  fullname + suffix
+                 final_username = username + str(suffix)
 
-            user = m.User(name     = username,
+            user = m.User(name     = final_username,
                           fullname = fullname,
                           email    = email,
                           openid   = eppn)
