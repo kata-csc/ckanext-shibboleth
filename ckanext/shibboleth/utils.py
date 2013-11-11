@@ -1,9 +1,9 @@
 #import logging
 
-import ckan.lib.navl.validators as v
-import ckan.lib.dictization as d
-import ckanext.kata.model as km
-import ckanext.kata.validators as kv
+import ckan.lib.navl.validators as validators
+import ckan.lib.dictization as dictization
+import ckanext.kata.model as kmodel
+import ckanext.kata.validators as kvalidators
 
 EXTRAS = ['firstname',
           'surname',
@@ -20,7 +20,7 @@ def fetch_user_extra(userid):
     reference. Somehow.
     '''
     extra_dict = {}
-    for extra in km.UserExtra.by_userid(userid):
+    for extra in kmodel.UserExtra.by_userid(userid):
         key = extra.as_dict()['key']
         value = extra.as_dict()['value']
         extra_dict.update({key:value})
@@ -33,9 +33,11 @@ def shibboleth_user_edit_form_schema(schema):
     @param schema: current schema
     @return: augmented schema
     '''
-    schema['organization'] = [v.ignore_missing, unicode]
-    schema['mobile'] = [v.ignore_missing, kv.validate_phonenum]
-    schema['telephone'] = [v.ignore_missing, kv.validate_phonenum]
+    schema['organization'] = [validators.ignore_missing, unicode]
+    schema['mobile'] = [validators.ignore_missing,
+                        kvalidators.validate_phonenum]
+    schema['telephone'] = [validators.ignore_missing,
+                           kvalidators.validate_phonenum]
     return schema
 
 def user_extra_save(user_dict, context):
@@ -49,7 +51,7 @@ def user_extra_save(user_dict, context):
     user = context.get('user_obj')
     user_extras = []
 
-    UserExtra = km.UserExtra
+    UserExtra = kmodel.UserExtra
     if user:
         user_dict['id'] = user.id
         for field in EXTRAS:
@@ -57,10 +59,11 @@ def user_extra_save(user_dict, context):
                 extra_row = {}
                 extra_row['key'] = field
                 extra_row['value'] = user_dict[field]
-                user_extra = km.UserExtra.by_userid_key(user.id, field)
+                user_extra = kmodel.UserExtra.by_userid_key(user.id, field)
                 if user_extra:
                     extra_row['id'] = user_extra.id
-                user_extras.append(d.table_dict_save(extra_row, UserExtra, context))
+                user_extras.append(
+                    dictization.table_dict_save(extra_row, UserExtra, context))
 
     return user_extras
 
