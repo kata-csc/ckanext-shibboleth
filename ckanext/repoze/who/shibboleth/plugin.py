@@ -160,14 +160,15 @@ class ShibbolethIdentifierPlugin(AuthTktCookiePlugin, ShibbolethBase):
         else:  # user is None:
             log.debug('User does not exists, creating new one.')
 
-            username = unicode(fullname, errors='ignore').lower().replace(' ',
+            basename = unicode(fullname, errors='ignore').lower().replace(' ',
                                                                           '_')
+            username = basename
             suffix = 0
             while not model.User.check_name_available(username):
                 suffix += 1
-                final_username = username + str(suffix)
+                username = basename + str(suffix)
 
-            user = model.User(name=final_username,
+            user = model.User(name=username,
                               fullname=fullname,
                               email=email,
                               openid=eppn)
