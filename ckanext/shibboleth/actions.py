@@ -2,18 +2,15 @@
 Overwrite actions for shibboleth to handle extra profile information.
 Modifications commented with line: # Added in ckanext-shibboleth
 '''
-
 import logging
-import pprint
 
 import ckan.logic as logic
 import ckan.logic.action.get as get
-import ckan.lib.dictization as d
+import ckan.lib.dictization as dictization
 import ckan.lib.navl.dictization_functions
-import utils as u
+import utils
 
 log = logging.getLogger(__name__)
-pf = pprint.pformat
 
 # Define some shortcuts
 # Ensure they are module-private so that they don't get loaded as available
@@ -24,6 +21,7 @@ _get_or_bust = logic.get_or_bust
 _validate = ckan.lib.navl.dictization_functions.validate
 NotFound = logic.NotFound
 ValidationError = logic.ValidationError
+
 
 def user_show(context, data_dict):
     '''Return a user account and extra profile info.
@@ -61,7 +59,7 @@ def user_show(context, data_dict):
 
     _check_access('user_show',context, data_dict)
 
-    user_dict = d.model_dictize.user_dictize(user_obj,context)
+    user_dict = dictization.model_dictize.user_dictize(user_obj,context)
 
     revisions_q = model.Session.query(model.Revision
     ).filter_by(author=user_obj.name)
@@ -91,10 +89,11 @@ def user_show(context, data_dict):
         {'id': user_dict['id']})
 
     # Added in ckanext-shibboleth
-    extra_dict = u.fetch_user_extra(user_dict['id'])
+    extra_dict = utils.fetch_user_extra(user_dict['id'])
     user_dict.update(extra_dict)
 
     return user_dict
+
 
 def user_update(context, data_dict):
     '''Update a user account.
@@ -119,7 +118,7 @@ def user_update(context, data_dict):
     session = context['session']
     schema = context.get('schema') or ckan.logic.schema.default_update_user_schema()
     # Added in ckanext-shibboleth
-    schema = u.shibboleth_user_edit_form_schema(schema)
+    schema = utils.shibboleth_user_edit_form_schema(schema)
 
     id = _get_or_bust(data_dict, 'id')
 
@@ -135,9 +134,9 @@ def user_update(context, data_dict):
         session.rollback()
         raise ValidationError(errors)
 
-    user = d.model_save.user_dict_save(data, context)
+    user = dictization.model_save.user_dict_save(data, context)
     # Added in ckanext-shibboleth
-    user_extras = u.user_extra_save(data, context)
+    user_extras = utils.user_extra_save(data, context)
 
     activity_dict = {
         'user_id': user.id,
@@ -156,4 +155,4 @@ def user_update(context, data_dict):
 
     if not context.get('defer_commit'):
         model.repo.commit()
-    return d.model_dictize.user_dictize(user, context)
+    return dictization.model_dictize.user_dictize(user, context)

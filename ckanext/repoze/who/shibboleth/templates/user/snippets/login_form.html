@@ -16,18 +16,19 @@ Example:
 
 <form action="{{ action }}" method="post" class="form-horizontal">
   {{ form.errors(errors=error_summary) }}
-  <a href="{{ h.url_for(controller='ckanext.repoze.who.shibboleth.controller:ShibbolethController', action='shiblogin') }}">
-    <img src="http://www.csc.fi/hallinto/haka/ohjeet/ohjeet-yllapitajille/haka_landscape_medium.gif" />
-  </a>
-  <br />
-  <p>{{ _("or login using local account") }} </p>
-  <br />
-
-  {{ form.input('login', label=_("Username"), id='field-login', value="", error=username_error, classes=["control-medium"]) }}
-  {{ form.input('password', label=_("Password"), id='field-password', type="password", value="", error=password_error, classes=["control-medium"]) }}
-  {{ form.checkbox('remember', label=_("Remember me"), id='field-remember', checked=true, value="63072000") }}
+  <p>{{ _("Authentication by using Haka login") }}</p>
+  <div class="controls">
+    <a tabindex="1" href="{{ h.url_for(controller='ckanext.repoze.who.shibboleth.controller:ShibbolethController', action='shiblogin') }}">
+      <img src="../base/images/haka_landscape_large.gif"/>
+    </a>
+  </div>
+  <br/>
+  <p>{{ _("Authentication by using local account") }}</p>
+  {{ form.input('login', label=_("Username"), id='field-login', value="", error=username_error, classes=["control-medium"], attrs={'tabindex':'2'}) }}
+  {{ form.input('password', label=_("Password"), id='field-password', type="password", value="", error=password_error, classes=["control-medium"], attrs={'tabindex':'3'}) }}
+  {{ form.checkbox('remember', label=_("Remember me"), id='field-remember', checked=true, value="63072000", attrs={'tabindex':'4'}) }}
 
   <div class="form-actions">
-    <button class="btn btn-primary" type="submit">{{ _('Log in') }}</button>
+    <button class="btn btn-primary" type="submit" tabindex="5">{{ _('Log in') }}</button>
   </div>
 </form>

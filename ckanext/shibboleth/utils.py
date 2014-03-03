@@ -1,5 +1,3 @@
-#import logging
-
 import ckan.lib.navl.validators as validators
 import ckan.lib.dictization as dictization
 import ckanext.kata.model as kmodel
@@ -11,7 +9,6 @@ EXTRAS = ['firstname',
           'mobile',
           'telephone']
 
-#log = logging.getLogger(__name__)
 
 def fetch_user_extra(userid):
     '''
@@ -26,6 +23,7 @@ def fetch_user_extra(userid):
         extra_dict.update({key:value})
     return extra_dict
 
+
 def shibboleth_user_edit_form_schema(schema):
     '''
     Add more fields to schema for validation.
@@ -39,6 +37,7 @@ def shibboleth_user_edit_form_schema(schema):
     schema['telephone'] = [validators.ignore_missing,
                            kvalidators.validate_phonenum]
     return schema
+
 
 def user_extra_save(user_dict, context):
     '''
@@ -66,5 +65,3 @@ def user_extra_save(user_dict, context):
                     dictization.table_dict_save(extra_row, UserExtra, context))
 
     return user_extras
-
-

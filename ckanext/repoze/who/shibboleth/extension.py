@@ -1,11 +1,14 @@
+# import logging
 import os
+
 from routes import url_for
 
-import ckan.plugins as p
+import ckan.plugins as plugins
+import ckan.plugins.toolkit as toolkit
 import ckanext.shibboleth.actions as actions
 
-#import logging
-#log = logging.getLogger("ckanext.repoze")
+# log = logging.getLogger(__name__)
+
 
 def shib_urls():
     return [url_for(controller='user', action='login'),
@@ -13,23 +16,23 @@ def shib_urls():
             url_for(controller='user', action='logged_out_page')]
 
 
-class CkanShibbolethPlugin(p.SingletonPlugin):
-    p.implements(p.IRoutes, inherit=True)
-    p.implements(p.IConfigurer)
-    p.implements(p.IActions, inherit=True)
+class CkanShibbolethPlugin(plugins.SingletonPlugin):
+    plugins.implements(plugins.IRoutes, inherit=True)
+    plugins.implements(plugins.IConfigurer)
+    plugins.implements(plugins.IActions, inherit=True)
 
     def update_config(self, config):
         """
-        This IConfigurer implementation causes CKAN to look in the
-        ```templates``` directories present in this package for any
-        customisations.
-
+        This IConfigurer implementation causes CKAN to look in the `templates`
+        or 'public' directories present in this package for any customisations.
         """
+        # FIXME Simplify augmenting path like for 'public' using toolkit
         here = os.path.dirname(__file__)
         rootdir = os.path.dirname(os.path.dirname(here))
         template_dir = os.path.join(rootdir, 'who', 'shibboleth', 'templates')
         config['extra_template_paths'] = ','.join([template_dir,
                 config.get('extra_template_paths', '')])
+        toolkit.add_public_directory(config, 'public')
 
     def before_map(self, map):
         """
