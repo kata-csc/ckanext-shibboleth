@@ -26,12 +26,7 @@ class CkanShibbolethPlugin(plugins.SingletonPlugin):
         This IConfigurer implementation causes CKAN to look in the `templates`
         or 'public' directories present in this package for any customisations.
         """
-        # FIXME Simplify augmenting path like for 'public' using toolkit
-        here = os.path.dirname(__file__)
-        rootdir = os.path.dirname(os.path.dirname(here))
-        template_dir = os.path.join(rootdir, 'who', 'shibboleth', 'templates')
-        config['extra_template_paths'] = ','.join([template_dir,
-                config.get('extra_template_paths', '')])
+        toolkit.add_template_directory(config, 'templates')
         toolkit.add_public_directory(config, 'public')
 
     def before_map(self, map):
