@@ -16,13 +16,13 @@ Example:
 
 <form action="{{ action }}" method="post" class="form-horizontal">
   {{ form.errors(errors=error_summary) }}
-  <p>{{ _("Authentication by using Haka login") }}</p>
+  <p>{{ _("Authentication by using Haka login") }}</p><br />
   <div class="controls">
     <a tabindex="1" href="{{ h.url_for(controller='ckanext.repoze.who.shibboleth.controller:ShibbolethController', action='shiblogin') }}">
       <img src="/base/images/haka_landscape_large.gif"/>
     </a>
   </div>
-  <br/>
+  <br/><br /><hr />
   <p>{{ _("Authentication by using local account") }}</p>
   {{ form.input('login', label=_("Username"), id='field-login', value="", error=username_error, classes=["control-medium"], attrs={'tabindex':'2'}) }}
   {{ form.input('password', label=_("Password"), id='field-password', type="password", value="", error=password_error, classes=["control-medium"], attrs={'tabindex':'3'}) }}
