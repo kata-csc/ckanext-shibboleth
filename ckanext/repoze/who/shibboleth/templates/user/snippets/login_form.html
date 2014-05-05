@@ -24,7 +24,7 @@ Example:
   </div>
   
   <br/><br />
-  {#
+  {% if g.debug %}
   <hr />
   <p>{{ _("Authentication by using local account") }}</p>
   {{ form.input('login', label=_("Username"), id='field-login', value="", error=username_error, classes=["control-medium"], attrs={'tabindex':'2'}) }}
@@ -34,5 +34,5 @@ Example:
   <div class="form-actions">
     <button class="btn btn-primary" type="submit" tabindex="5">{{ _('Log in') }}</button>
   </div>
-  #}
+  {% endif %}
 </form>
