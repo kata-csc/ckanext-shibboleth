@@ -1,17 +1,12 @@
 # -*- coding: utf8 -*-
 
 import logging
-import pprint
 
-from pylons.i18n import _
-from repoze.who.interfaces import IChallengeDecider
 from repoze.who.interfaces import IIdentifier
-from repoze.who.plugins.auth_tkt import AuthTktCookiePlugin
 from routes import url_for
 from webob import Request, Response
-from zope.interface import implements, directlyProvides
+from zope.interface import implements
 
-import ckan.lib.helpers as h
 import ckan.model as model
 import ckanext.kata.model as kmodel
 import ckanext.shibboleth.utils as utils
@@ -31,7 +26,7 @@ class ShibbolethBase(object):
                                                         '') == SHIBBOLETH
 
 
-class ShibbolethIdentifierPlugin(AuthTktCookiePlugin, ShibbolethBase):
+class ShibbolethIdentifierPlugin(ShibbolethBase):
     implements(IIdentifier)
 
     def __init__(self, session, eppn, mail, fullname, **kwargs):
