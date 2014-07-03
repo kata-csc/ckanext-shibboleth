@@ -1,0 +1,43 @@
+# Finnish translations for Kata.
+# Copyright (C) 2014 CSC - IT Center for Science
+# This file is distributed under the same license as the Kata project.
+# Kata projekti <kata-project@postit.csc.fi>, 2014.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version:  Kata\n"
+"Report-Msgid-Bugs-To: kata-project@postit.csc.fi\n"
+"POT-Creation-Date: 2014-07-02 11:18+0300\n"
+"PO-Revision-Date: 2014-07-02 09:03+0300\n"
+"Last-Translator: Pinja Koskinen <kata-project@postit.csc.fi>\n"
+"Language-Team: Finnish <kata-project@postit.csc.fi>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 0.9.6\n"
+
+#: ckanext/repoze/who/shibboleth/templates/user/snippets/login_form.html:19
+msgid "Authentication by using Haka login"
+msgstr "Sisäänkirjautuminen Haka-tunnuksilla"
+
+#: ckanext/repoze/who/shibboleth/templates/user/snippets/login_form.html:29
+msgid "Authentication by using local account"
+msgstr "Sisäänkirjautuminen paikallisilla tunnuksilla"
+
+#: ckanext/repoze/who/shibboleth/templates/user/snippets/login_form.html:30
+msgid "Username"
+msgstr "Käyttäjänimi"
+
+#: ckanext/repoze/who/shibboleth/templates/user/snippets/login_form.html:31
+msgid "Password"
+msgstr "Salasana"
+
+#: ckanext/repoze/who/shibboleth/templates/user/snippets/login_form.html:32
+msgid "Remember me"
+msgstr "Muista minut"
+
+#: ckanext/repoze/who/shibboleth/templates/user/snippets/login_form.html:35
+msgid "Log in"
+msgstr "Kirjaudu sisään"
+

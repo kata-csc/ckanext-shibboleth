@@ -27,6 +27,13 @@ setup(
     install_requires=[],
     setup_requires=['nose>=1.0', 'coverage'],
     tests_require=['nose'],
+    message_extractors = {
+        'ckanext': [
+                        ('**.py', 'python', None),#
+                        ('repoze/who/shibboleth/templates/user/**.html', 'ckan', None),
+                        
+                        ],
+    },
     entry_points="""
     [ckan.plugins]
     shibboleth=ckanext.repoze.who.shibboleth.extension:CkanShibbolethPlugin
