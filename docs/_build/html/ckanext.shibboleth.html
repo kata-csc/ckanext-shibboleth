@@ -1,0 +1,196 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ckanext.shibboleth package &mdash; Kata metadata catalogue documentation</title>
+    
+    <link rel="stylesheet" href="_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Kata metadata catalogue documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="header-wrapper">
+      <div class="header">
+        <div class="headertitle"><a
+          href="index.html">Kata</a></div>
+        <div class="rel">
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="ckanext-shibboleth-package">
+<h1>ckanext.shibboleth package<a class="headerlink" href="#ckanext-shibboleth-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-ckanext.shibboleth.actions">
+<span id="ckanext-shibboleth-actions-module"></span><h2>ckanext.shibboleth.actions module<a class="headerlink" href="#module-ckanext.shibboleth.actions" title="Permalink to this headline">¶</a></h2>
+<p>Overwrite actions for shibboleth to handle extra profile information.
+Modifications commented with line: # Added in ckanext-shibboleth</p>
+<dl class="function">
+<dt id="ckanext.shibboleth.actions.user_show">
+<tt class="descclassname">ckanext.shibboleth.actions.</tt><tt class="descname">user_show</tt><big>(</big><em>context</em>, <em>data_dict</em><big>)</big><a class="reference internal" href="_modules/ckanext/shibboleth/actions.html#user_show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ckanext.shibboleth.actions.user_show" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a user account and extra profile info.</p>
+<p>Minor rewrite to add additional user profile information (acquired eg. from
+shibboleth) from the user_extra table to the c.user_dict for templates.
+NOTE: &#8216;revision_show&#8217; method still references to default
+ckan.logic.action.get.revision_show while &#8216;package_show&#8217; declaration is
+resolved with standard &#8216;get_action&#8217; hook. Not sure which to use so these
+are tried.</p>
+<p>Either the <tt class="docutils literal"><span class="pre">id</span></tt> or the <tt class="docutils literal"><span class="pre">user_obj</span></tt> parameter must be given in data_dict.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>id</strong> (<em>string</em>) &#8211; the id or name of the user (optional)</li>
+<li><strong>user_obj</strong> (<em>user dictionary</em>) &#8211; the user dictionary of the user (optional)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dictionary</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ckanext.shibboleth.actions.user_update">
+<tt class="descclassname">ckanext.shibboleth.actions.</tt><tt class="descname">user_update</tt><big>(</big><em>context</em>, <em>data_dict</em><big>)</big><a class="reference internal" href="_modules/ckanext/shibboleth/actions.html#user_update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ckanext.shibboleth.actions.user_update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update a user account.</p>
+<p>Minor rewrite to update also additional user profile information (acquired
+eg. from shibboleth).</p>
+<p>Normal users can only update their own user accounts. Sysadmins can update
+any user account.</p>
+<p>For further parameters see <tt class="docutils literal"><span class="pre">user_create()</span></tt>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data_dict[&#8216;id&#8217;]</strong> (<em>string</em>) &#8211; the name or id of the user to update</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the updated user account</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">dictionary</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ckanext.shibboleth.utils">
+<span id="ckanext-shibboleth-utils-module"></span><h2>ckanext.shibboleth.utils module<a class="headerlink" href="#module-ckanext.shibboleth.utils" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ckanext.shibboleth.utils.fetch_user_extra">
+<tt class="descclassname">ckanext.shibboleth.utils.</tt><tt class="descname">fetch_user_extra</tt><big>(</big><em>userid</em><big>)</big><a class="reference internal" href="_modules/ckanext/shibboleth/utils.html#fetch_user_extra"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ckanext.shibboleth.utils.fetch_user_extra" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return extra profile information.
+More elegant might be to access extra rows through user table foreign key
+reference. Somehow.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ckanext.shibboleth.utils.shibboleth_user_edit_form_schema">
+<tt class="descclassname">ckanext.shibboleth.utils.</tt><tt class="descname">shibboleth_user_edit_form_schema</tt><big>(</big><em>schema</em><big>)</big><a class="reference internal" href="_modules/ckanext/shibboleth/utils.html#shibboleth_user_edit_form_schema"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ckanext.shibboleth.utils.shibboleth_user_edit_form_schema" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add more fields to schema for validation.</p>
+<p>&#64;param schema: current schema
+&#64;return: augmented schema</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ckanext.shibboleth.utils.user_extra_save">
+<tt class="descclassname">ckanext.shibboleth.utils.</tt><tt class="descname">user_extra_save</tt><big>(</big><em>user_dict</em>, <em>context</em><big>)</big><a class="reference internal" href="_modules/ckanext/shibboleth/utils.html#user_extra_save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ckanext.shibboleth.utils.user_extra_save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save user profile extra information to database.
+Modified from ckan/lib/dictization/model_save.py:445 (user_dict_save).
+&#64;param user_dict: dict containing user and extra information
+&#64;param context:
+&#64;return: list of saved model objects</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ckanext.shibboleth">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ckanext.shibboleth" title="Permalink to this headline">¶</a></h2>
+<p>Shibboleth extension for CKAN.</p>
+<p>Provides shibboleth authentication for CKAN.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          <ul class="simple">
+</ul>
+
+          <h3 style="margin-top: 1.5em;">Search</h3>
+          <form class="search" action="search.html" method="get">
+            <input type="text" name="q" />
+            <input type="submit" value="Go" />
+            <input type="hidden" name="check_keywords" value="yes" />
+            <input type="hidden" name="area" value="default" />
+          </form>
+          <p class="searchtip" style="font-size: 90%">
+            Enter search terms or a module, class or function name.
+          </p>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="genindex.html" title="General Index"
+             >index</a>
+            <br/>
+            <a href="_sources/ckanext.shibboleth.txt"
+               rel="nofollow">Show Source</a>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer">
+        &copy; Copyright 2014, CSC.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

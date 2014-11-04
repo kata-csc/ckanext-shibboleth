@@ -1,0 +1,306 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ckanext.repoze.who.shibboleth.plugin &mdash; Kata metadata catalogue documentation</title>
+    
+    <link rel="stylesheet" href="../../../../../_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../../_static/doctools.js"></script>
+    <link rel="top" title="Kata metadata catalogue documentation" href="../../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../../index.html" /> 
+  </head>
+  <body>
+    <div class="header-wrapper">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../../../../../index.html">Kata</a></div>
+        <div class="rel">
+          <a href="../../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../../../../../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for ckanext.repoze.who.shibboleth.plugin</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf8 -*-</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">pprint</span>
+
+<span class="kn">from</span> <span class="nn">pylons.i18n</span> <span class="kn">import</span> <span class="n">_</span>
+<span class="kn">from</span> <span class="nn">repoze.who.interfaces</span> <span class="kn">import</span> <span class="n">IChallengeDecider</span>
+<span class="kn">from</span> <span class="nn">repoze.who.interfaces</span> <span class="kn">import</span> <span class="n">IIdentifier</span>
+<span class="kn">from</span> <span class="nn">repoze.who.plugins.auth_tkt</span> <span class="kn">import</span> <span class="n">AuthTktCookiePlugin</span>
+<span class="kn">from</span> <span class="nn">routes</span> <span class="kn">import</span> <span class="n">url_for</span>
+<span class="kn">from</span> <span class="nn">webob</span> <span class="kn">import</span> <span class="n">Request</span><span class="p">,</span> <span class="n">Response</span>
+<span class="kn">from</span> <span class="nn">zope.interface</span> <span class="kn">import</span> <span class="n">implements</span><span class="p">,</span> <span class="n">directlyProvides</span>
+
+<span class="kn">import</span> <span class="nn">ckan.lib.helpers</span> <span class="kn">as</span> <span class="nn">h</span>
+<span class="kn">import</span> <span class="nn">ckan.model</span> <span class="kn">as</span> <span class="nn">model</span>
+<span class="kn">import</span> <span class="nn">ckanext.kata.model</span> <span class="kn">as</span> <span class="nn">kmodel</span>
+<span class="kn">import</span> <span class="nn">ckanext.shibboleth.utils</span> <span class="kn">as</span> <span class="nn">utils</span>
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s">&quot;ckanext.repoze.who.shibboleth&quot;</span><span class="p">)</span>
+
+<span class="n">SHIBBOLETH</span> <span class="o">=</span> <span class="s">&#39;shibboleth&#39;</span>
+
+
+<div class="viewcode-block" id="make_identification_plugin"><a class="viewcode-back" href="../../../../../ckanext.repoze.who.shibboleth.html#ckanext.repoze.who.shibboleth.plugin.make_identification_plugin">[docs]</a><span class="k">def</span> <span class="nf">make_identification_plugin</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">ShibbolethIdentifierPlugin</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="ShibbolethBase"><a class="viewcode-back" href="../../../../../ckanext.repoze.who.shibboleth.html#ckanext.repoze.who.shibboleth.plugin.ShibbolethBase">[docs]</a><span class="k">class</span> <span class="nc">ShibbolethBase</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="ShibbolethBase.is_shib_session"><a class="viewcode-back" href="../../../../../ckanext.repoze.who.shibboleth.html#ckanext.repoze.who.shibboleth.plugin.ShibbolethBase.is_shib_session">[docs]</a>    <span class="k">def</span> <span class="nf">is_shib_session</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">env</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span> <span class="ow">and</span> <span class="n">env</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;AUTH_TYPE&#39;</span><span class="p">,</span>
+                                                        <span class="s">&#39;&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">SHIBBOLETH</span>
+
+</div></div>
+<div class="viewcode-block" id="ShibbolethIdentifierPlugin"><a class="viewcode-back" href="../../../../../ckanext.repoze.who.shibboleth.html#ckanext.repoze.who.shibboleth.plugin.ShibbolethIdentifierPlugin">[docs]</a><span class="k">class</span> <span class="nc">ShibbolethIdentifierPlugin</span><span class="p">(</span><span class="n">AuthTktCookiePlugin</span><span class="p">,</span> <span class="n">ShibbolethBase</span><span class="p">):</span>
+    <span class="n">implements</span><span class="p">(</span><span class="n">IIdentifier</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">eppn</span><span class="p">,</span> <span class="n">mail</span><span class="p">,</span> <span class="n">fullname</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Parameters here contain just names of the environment attributes defined</span>
+<span class="sd">        in who.ini, not their values:</span>
+<span class="sd">        @param session: &#39;Shib-Session-ID&#39;</span>
+<span class="sd">        @param eppn: &#39;eppn&#39;</span>
+<span class="sd">        @param organization: &#39;schacHomeOrganization&#39;</span>
+<span class="sd">        etc.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">session</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eppn</span> <span class="o">=</span> <span class="n">eppn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mail</span> <span class="o">=</span> <span class="n">mail</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fullname</span> <span class="o">=</span> <span class="n">fullname</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">extra_keys</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">utils</span><span class="o">.</span><span class="n">EXTRAS</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">extra_keys</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+
+        <span class="n">controller</span> <span class="o">=</span> <span class="s">&#39;ckanext.repoze.who.shibboleth.controller:ShibbolethController&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">login_url</span> <span class="o">=</span> <span class="n">url_for</span><span class="p">(</span><span class="n">controller</span><span class="o">=</span><span class="n">controller</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s">&#39;shiblogin&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logout_url</span> <span class="o">=</span> <span class="n">url_for</span><span class="p">(</span><span class="n">controller</span><span class="o">=</span><span class="s">&#39;user&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s">&#39;logout&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ShibbolethIdentifierPlugin.identify"><a class="viewcode-back" href="../../../../../ckanext.repoze.who.shibboleth.html#ckanext.repoze.who.shibboleth.plugin.ShibbolethIdentifierPlugin.identify">[docs]</a>    <span class="k">def</span> <span class="nf">identify</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">environ</span><span class="p">):</span>
+        <span class="n">request</span> <span class="o">=</span> <span class="n">Request</span><span class="p">(</span><span class="n">environ</span><span class="p">)</span>
+        <span class="c"># log.debug(&#39;Request path: %s&#39; % request.path)</span>
+        <span class="c"># log.debug(pprint.pformat(request))</span>
+        <span class="c"># log.debug(&#39;environ: {env}&#39;.format(env=pprint.pformat(environ)))</span>
+
+        <span class="c"># Logout user</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">path</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">logout_url</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">Response</span><span class="p">()</span>
+
+            <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">forget</span><span class="p">(</span><span class="n">environ</span><span class="p">,</span> <span class="p">{}):</span>
+                <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+
+            <span class="n">response</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="mi">302</span>
+            <span class="n">response</span><span class="o">.</span><span class="n">location</span> <span class="o">=</span> <span class="n">url_for</span><span class="p">(</span><span class="n">controller</span><span class="o">=</span><span class="s">&#39;user&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s">&#39;logged_out&#39;</span><span class="p">)</span>
+            <span class="n">environ</span><span class="p">[</span><span class="s">&#39;repoze.who.application&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">response</span>
+
+            <span class="k">return</span> <span class="p">{}</span>
+
+        <span class="c"># Login user, if there&#39;s shibboleth headers and path is shiblogin</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_shib_session</span><span class="p">(</span><span class="n">environ</span><span class="p">)</span> <span class="ow">and</span> <span class="n">request</span><span class="o">.</span><span class="n">path</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">login_url</span><span class="p">:</span>
+        <span class="c"># log.debug(&quot;Trying to authenticate with shibboleth&quot;)</span>
+        <span class="c"># log.debug(&#39;environ AUTH TYPE: %s&#39;, environ.get(&#39;AUTH_TYPE&#39;, &#39;None&#39;))</span>
+        <span class="c"># log.debug(&#39;environ Shib-Session-ID: %s&#39;, environ.get(self.session, &#39;None&#39;))</span>
+        <span class="c"># log.debug(&#39;environ mail: %s&#39;, environ.get(self.mail, &#39;None&#39;))</span>
+        <span class="c"># log.debug(&#39;environ cn: %s&#39;, environ.get(self.name, &#39;None&#39;))</span>
+
+            <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_or_create_user</span><span class="p">(</span><span class="n">environ</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
+            <span class="c"># log.debug(&#39;User is None&#39;)</span>
+                <span class="k">return</span> <span class="p">{}</span>
+
+            <span class="c"># TODO: Fix flash message later, maybe some other place</span>
+            <span class="c">#h.flash_success(</span>
+            <span class="c">#    _(&#39;Profile updated or restored from {idp}.&#39;).format(</span>
+            <span class="c">#        idp=environ.get(&#39;Shib-Identity-Provider&#39;,</span>
+            <span class="c">#                        &#39;IdP not aquired&#39;)))</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">Response</span><span class="p">()</span>
+            <span class="n">response</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="mi">302</span>
+            <span class="n">response</span><span class="o">.</span><span class="n">location</span> <span class="o">=</span> <span class="n">url_for</span><span class="p">(</span><span class="n">controller</span><span class="o">=</span><span class="s">&#39;user&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s">&#39;read&#39;</span><span class="p">)</span>
+            <span class="n">environ</span><span class="p">[</span><span class="s">&#39;repoze.who.application&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">response</span>
+
+            <span class="k">return</span> <span class="p">{</span><span class="s">&#39;repoze.who.plugins.openid.userid&#39;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">openid</span><span class="p">,</span>
+                    <span class="s">&#39;login&#39;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">,</span>
+                    <span class="s">&#39;password&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;email&#39;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">,</span>
+                    <span class="s">&#39;fullname&#39;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">}</span>
+
+        <span class="k">return</span> <span class="p">{}</span>
+</div>
+    <span class="k">def</span> <span class="nf">_get_or_create_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
+        <span class="c">#WSGI Variables</span>
+        <span class="c">#Shib-Application-ID            &#39;default&#39;</span>
+        <span class="c">#Shib-Authentication-Instant    &#39;2012-08-13T12:04:22.492Z&#39;</span>
+        <span class="c">#Shib-Authentication-Method     &#39;urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport&#39;</span>
+        <span class="c">#Shib-AuthnContext-Class        &#39;urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport&#39;</span>
+        <span class="c">#Shib-Identity-Provider         &#39;https://idp.example.com/idp/shibboleth&#39;</span>
+        <span class="c">#Shib-Session-ID                &#39;_7ec5a681e6dbae627c1cefcc7cb4d56a&#39;</span>
+        <span class="c">#Shib-Session-Index             &#39;39dafd8477850f5e0b968e3561570197f2109948c1d374a7a2b4c9a7adbf8628&#39;</span>
+        <span class="c">#cn                             &#39;My Other Self&#39;</span>
+        <span class="c">#givenName                      &#39;My Other Self&#39;</span>
+        <span class="c">#mail                           &#39;myother@self.com&#39;</span>
+
+        <span class="n">eppn</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eppn</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">fullname</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fullname</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">email</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mail</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">extras</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">utils</span><span class="o">.</span><span class="n">EXTRAS</span><span class="p">:</span>
+            <span class="n">extras</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">extra_keys</span><span class="p">[</span><span class="n">field</span><span class="p">],</span> <span class="bp">None</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">eppn</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">fullname</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s">&#39;Environ does not contain eppn or cn attributes, user not loaded.&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">None</span>
+
+        <span class="n">user</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">Session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">autoflush</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">openid</span><span class="o">=</span><span class="n">eppn</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+
+        <span class="c"># Check if user information from shibboleth has changed</span>
+        <span class="k">if</span> <span class="n">user</span><span class="p">:</span>
+            <span class="n">old_extras</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">fetch_user_extra</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">fullname</span> <span class="o">!=</span> <span class="n">fullname</span> <span class="ow">or</span> <span class="n">user</span><span class="o">.</span><span class="n">email</span> <span class="o">!=</span> <span class="n">email</span><span class="p">):</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;User attributes modified, updating.&#39;</span><span class="p">)</span>
+                <span class="n">user</span><span class="o">.</span><span class="n">fullname</span> <span class="o">=</span> <span class="n">fullname</span>
+                <span class="n">user</span><span class="o">.</span><span class="n">email</span> <span class="o">=</span> <span class="n">email</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">old_extras</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">extras</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">!=</span> <span class="n">val</span><span class="p">:</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;User extra attribute {att} modified, updating.&#39;</span>
+                    <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">att</span><span class="o">=</span><span class="n">key</span><span class="p">))</span>
+                    <span class="n">extra</span> <span class="o">=</span> <span class="n">kmodel</span><span class="o">.</span><span class="n">UserExtra</span><span class="o">.</span><span class="n">by_userid_key</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
+                    <span class="n">extra</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">extras</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="c"># Check for new attributes</span>
+            <span class="n">new_extra_keys</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">extras</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">old_extras</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="k">if</span> <span class="n">new_extra_keys</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;New user extra attribute {att} found, updating.&#39;</span>
+                          <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">att</span><span class="o">=</span><span class="n">key</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">new_extra_keys</span><span class="p">:</span>
+                    <span class="n">extra</span> <span class="o">=</span> <span class="n">kmodel</span><span class="o">.</span><span class="n">UserExtra</span><span class="p">(</span><span class="n">user_id</span><span class="o">=</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span>
+                                             <span class="n">value</span><span class="o">=</span><span class="n">extras</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+                    <span class="n">model</span><span class="o">.</span><span class="n">Session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">extra</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>  <span class="c"># user is None:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;User does not exists, creating new one.&#39;</span><span class="p">)</span>
+
+            <span class="n">basename</span> <span class="o">=</span> <span class="nb">unicode</span><span class="p">(</span><span class="n">fullname</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s">&#39;ignore&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">,</span>
+                                                                          <span class="s">&#39;_&#39;</span><span class="p">)</span>
+            <span class="n">username</span> <span class="o">=</span> <span class="n">basename</span>
+            <span class="n">suffix</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">while</span> <span class="ow">not</span> <span class="n">model</span><span class="o">.</span><span class="n">User</span><span class="o">.</span><span class="n">check_name_available</span><span class="p">(</span><span class="n">username</span><span class="p">):</span>
+                <span class="n">suffix</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">username</span> <span class="o">=</span> <span class="n">basename</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">suffix</span><span class="p">)</span>
+
+            <span class="n">user</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">User</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">username</span><span class="p">,</span>
+                              <span class="n">fullname</span><span class="o">=</span><span class="n">fullname</span><span class="p">,</span>
+                              <span class="n">email</span><span class="o">=</span><span class="n">email</span><span class="p">,</span>
+                              <span class="n">openid</span><span class="o">=</span><span class="n">eppn</span><span class="p">)</span>
+
+            <span class="n">model</span><span class="o">.</span><span class="n">Session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+            <span class="c"># TODO: Instead this extra table mess up, use Mapping Class ...</span>
+            <span class="c"># ... Inheritance?:</span>
+            <span class="c"># http://stackoverflow.com/questions/1337095/sqlalchemy-inheritance</span>
+            <span class="c"># This might be unfeasible if requires tweaking CKAN user model.</span>
+            <span class="c"># We need to get the user id so flush and user is written to db.</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">Session</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+            <span class="n">userid</span> <span class="o">=</span> <span class="n">user</span><span class="o">.</span><span class="n">id</span>
+            <span class="c">#new</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">extras</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
+                    <span class="n">extra</span> <span class="o">=</span> <span class="n">kmodel</span><span class="o">.</span><span class="n">UserExtra</span><span class="p">(</span><span class="n">user_id</span><span class="o">=</span><span class="n">userid</span><span class="p">,</span>
+                                             <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span>
+                                             <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
+                    <span class="n">model</span><span class="o">.</span><span class="n">Session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">extra</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Created new user {usr}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">usr</span><span class="o">=</span><span class="n">fullname</span><span class="p">))</span>
+
+        <span class="n">model</span><span class="o">.</span><span class="n">Session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">Session</span><span class="o">.</span><span class="n">remove</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">user</span>
+
+    <span class="k">def</span> <span class="nf">_get_rememberer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">environ</span><span class="p">):</span>
+        <span class="n">plugins</span> <span class="o">=</span> <span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;repoze.who.plugins&#39;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="k">return</span> <span class="n">plugins</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;auth_tkt&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ShibbolethIdentifierPlugin.remember"><a class="viewcode-back" href="../../../../../ckanext.repoze.who.shibboleth.html#ckanext.repoze.who.shibboleth.plugin.ShibbolethIdentifierPlugin.remember">[docs]</a>    <span class="k">def</span> <span class="nf">remember</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">environ</span><span class="p">,</span> <span class="n">identity</span><span class="p">):</span>
+        <span class="n">rememberer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_rememberer</span><span class="p">(</span><span class="n">environ</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">rememberer</span> <span class="ow">and</span> <span class="n">rememberer</span><span class="o">.</span><span class="n">remember</span><span class="p">(</span><span class="n">environ</span><span class="p">,</span> <span class="n">identity</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ShibbolethIdentifierPlugin.forget"><a class="viewcode-back" href="../../../../../ckanext.repoze.who.shibboleth.html#ckanext.repoze.who.shibboleth.plugin.ShibbolethIdentifierPlugin.forget">[docs]</a>    <span class="k">def</span> <span class="nf">forget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">environ</span><span class="p">,</span> <span class="n">identity</span><span class="p">):</span>
+        <span class="n">rememberer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_rememberer</span><span class="p">(</span><span class="n">environ</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">rememberer</span> <span class="ow">and</span> <span class="n">rememberer</span><span class="o">.</span><span class="n">forget</span><span class="p">(</span><span class="n">environ</span><span class="p">,</span> <span class="n">identity</span><span class="p">)</span>
+</pre></div></div></div>
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          <ul class="simple">
+</ul>
+
+          <h3 style="margin-top: 1.5em;">Search</h3>
+          <form class="search" action="../../../../../search.html" method="get">
+            <input type="text" name="q" />
+            <input type="submit" value="Go" />
+            <input type="hidden" name="check_keywords" value="yes" />
+            <input type="hidden" name="area" value="default" />
+          </form>
+          <p class="searchtip" style="font-size: 90%">
+            Enter search terms or a module, class or function name.
+          </p>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <a href="../../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../../../../../genindex.html" title="General Index"
+             >index</a>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer">
+        &copy; Copyright 2014, CSC.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>
