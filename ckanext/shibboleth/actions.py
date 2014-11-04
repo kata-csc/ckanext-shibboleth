@@ -24,12 +24,13 @@ ValidationError = logic.ValidationError
 
 
 def user_show(context, data_dict):
-    '''Return a user account and extra profile info.
+    '''
+    Return a user account and extra profile info.
 
     Minor rewrite to add additional user profile information (acquired eg. from
     shibboleth) from the user_extra table to the c.user_dict for templates.
     NOTE: 'revision_show' method still references to default
-     ckan.logic.action.get.revision_show while 'package_show' declaration is
+    ckan.logic.action.get.revision_show while 'package_show' declaration is
     resolved with standard 'get_action' hook. Not sure which to use so these
     are tried.
 
