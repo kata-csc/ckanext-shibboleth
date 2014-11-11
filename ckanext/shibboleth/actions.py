@@ -151,8 +151,6 @@ def user_update(context, data_dict):
         'session': session
     }
     _get_action('activity_create')(activity_create_context, activity_dict, ignore_auth=True)
-    # TODO: Also create an activity detail recording what exactly changed in
-    # the user.
 
     if not context.get('defer_commit'):
         model.repo.commit()
