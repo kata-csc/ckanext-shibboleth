@@ -9,6 +9,7 @@ import ckan.logic.action.get as get
 import ckan.lib.dictization as dictization
 import ckan.lib.navl.dictization_functions
 import utils
+import ckan.new_authz as new_authz
 
 log = logging.getLogger(__name__)
 
@@ -44,54 +45,31 @@ def user_show(context, data_dict):
     :rtype: dictionary
 
     '''
-    model = context['model']
-
-    id = data_dict.get('id',None)
-    provided_user = data_dict.get('user_obj',None)
-    if id:
-        user_obj = model.User.get(id)
-        context['user_obj'] = user_obj
-        if user_obj is None:
-            raise NotFound
-    elif provided_user:
-        context['user_obj'] = user_obj = provided_user
+    # In some places, this user_show is used almost like a check access function
+    # thus we are returning something instead of modifying the authorisation function
+    log.debug(context)
+    log.debug(data_dict)
+    if context.get('user', '') == data_dict.get('id', None):
+        hide = False
+    elif context.get('user', False) and new_authz.is_sysadmin(context['user']):
+        hide = False
+    # Dashboard:
+    elif data_dict.get('user_obj', False) and not data_dict.get('id', False) and \
+            (context.get('user', '') == data_dict['user_obj'].name):
+        hide = False
     else:
-        raise NotFound
+        hide = True
 
-    _check_access('user_show',context, data_dict)
-
-    user_dict = dictization.model_dictize.user_dictize(user_obj,context)
-
-    revisions_q = model.Session.query(model.Revision
-    ).filter_by(author=user_obj.name)
-
-    revisions_list = []
-    for revision in revisions_q.limit(20).all():
-        revision_dict = get.revision_show(context,{'id':revision.id})
-        revision_dict['state'] = revision.state
-        revisions_list.append(revision_dict)
-    user_dict['activity'] = revisions_list
-
-    user_dict['datasets'] = []
-    dataset_q = model.Session.query(model.Package).join(model.PackageRole
-    ).filter_by(user=user_obj, role=model.Role.ADMIN
-    ).limit(50)
-
-    for dataset in dataset_q:
-        try:
-            dataset_dict = logic.get_action('package_show')(context,
-                                                            {'id': dataset.id})
-        except logic.NotAuthorized:
-            continue
-        user_dict['datasets'].append(dataset_dict)
-
-    user_dict['num_followers'] = logic.get_action('user_follower_count')(
-        {'model': model, 'session': model.Session},
-        {'id': user_dict['id']})
+    user_dict = get.user_show(context, data_dict)
 
     # Added in ckanext-shibboleth
     extra_dict = utils.fetch_user_extra(user_dict['id'])
     user_dict.update(extra_dict)
+
+    if hide:
+        return {'name': user_dict.get('name', ''),
+                'about': user_dict.get('about', ''),
+                'id': user_dict.get('id', '')}
 
     return user_dict
 
