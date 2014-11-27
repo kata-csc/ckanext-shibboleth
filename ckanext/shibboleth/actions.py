@@ -47,8 +47,6 @@ def user_show(context, data_dict):
     '''
     # In some places, this user_show is used almost like a check access function
     # thus we are returning something instead of modifying the authorisation function
-    log.debug(context)
-    log.debug(data_dict)
     if context.get('user', '') == data_dict.get('id', None):
         hide = False
     elif context.get('user', False) and new_authz.is_sysadmin(context['user']):
