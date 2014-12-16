@@ -64,7 +64,13 @@ class ShibbolethIdentifierPlugin(ShibbolethBase):
                 response.headers.add(a, v)
 
             response.status = 302
-            response.location = url_for(controller='user', action='logged_out')
+            url = url_for(controller='user', action='logged_out')
+            locale = environ.get('CKAN_LANG', None)
+            default_locale = environ.get('CKAN_LANG_IS_DEFAULT', True)
+            if not default_locale and locale:
+                url = "/%s%s" % (locale, url)
+
+            response.location = url
             environ['repoze.who.application'] = response
 
             return {}
