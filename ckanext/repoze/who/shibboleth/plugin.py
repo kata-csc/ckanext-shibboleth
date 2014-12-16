@@ -2,7 +2,7 @@
 
 import logging
 
-from repoze.who.interfaces import IIdentifier
+from repoze.who.interfaces import IIdentifier, IChallenger
 from routes import url_for
 from webob import Request, Response
 from zope.interface import implements
@@ -10,6 +10,9 @@ from zope.interface import implements
 import ckan.model as model
 import ckanext.kata.model as kmodel
 import ckanext.shibboleth.utils as utils
+
+from urlparse import urlparse, urlunparse, parse_qs
+
 
 log = logging.getLogger("ckanext.repoze.who.shibboleth")
 
@@ -27,7 +30,7 @@ class ShibbolethBase(object):
 
 
 class ShibbolethIdentifierPlugin(ShibbolethBase):
-    implements(IIdentifier)
+    implements(IChallenger, IIdentifier)
 
     def __init__(self, session, eppn, mail, fullname, **kwargs):
         '''
@@ -47,8 +50,36 @@ class ShibbolethIdentifierPlugin(ShibbolethBase):
             self.extra_keys[field] = kwargs.get(field, None)
 
         controller = 'ckanext.repoze.who.shibboleth.controller:ShibbolethController'
+
         self.login_url = url_for(controller=controller, action='shiblogin')
+        self.login_form_url = url_for(controller='user', action='login')
         self.logout_url = url_for(controller='user', action='logout')
+
+
+    # IChallenger
+    def challenge(self, environ, status, app_headers, forget_headers):
+        request = Request(environ)
+
+        locale_default = environ.get('CKAN_LANG_IS_DEFAULT', True)
+        locale = environ.get('CKAN_LANG', None)
+
+        parsed_url = list(urlparse(request.url))
+        parsed_url[0] = parsed_url[1] = ''
+        requested_url = urlunparse(parsed_url)
+
+        if not locale_default and locale and not requested_url.startswith('/%s/' % locale):
+            requested_url = "/%s%s" % (locale, requested_url)
+
+        url = self.login_form_url + "?%s=%s" % ("came_from", requested_url)
+
+        if not locale_default and locale:
+            url = "/%s%s" % (locale, url)
+
+        response = Response()
+        response.status = 302
+        response.location = url
+        return response
+
 
     def identify(self, environ):
         request = Request(environ)
