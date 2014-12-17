@@ -175,16 +175,14 @@ class ShibbolethIdentifierPlugin(ShibbolethBase):
                 user.email = email
             for key, val in old_extras.iteritems():
                 if extras[key] != val:
-                    log.debug('User extra attribute {att} modified, updating.'
-                    .format(att=key))
+                    log.debug('User extra attribute {att} modified, updating.'.format(att=key))
                     extra = kmodel.UserExtra.by_userid_key(user.id, key=key)
                     extra.value = extras[key]
             # Check for new attributes
             new_extra_keys = set(extras.keys()) - set(old_extras.keys())
             if new_extra_keys:
-                log.debug('New user extra attribute {att} found, updating.'
-                          .format(att=key))
                 for key in new_extra_keys:
+                    log.debug('New user extra attribute {att} found, updating.'.format(att=key))
                     extra = kmodel.UserExtra(user_id=user.id, key=key,
                                              value=extras[key])
                     model.Session.add(extra)

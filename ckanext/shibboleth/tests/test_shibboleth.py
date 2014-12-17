@@ -5,6 +5,7 @@ from routes import url_for
 import ckan.model as model
 from ckan.tests.functional.base import FunctionalTestCase
 from ckanext.repoze.who.shibboleth.plugin import make_identification_plugin, SHIBBOLETH
+import ckanext.kata.model as kata_model
 
 SESSION_FIELD = 'Shib-Session-ID'
 SESSION_FIELD_VAL = '_7ec5a681e6dbae627c1cefcc7cb4d56a'
@@ -21,6 +22,7 @@ TELEPHONE_FIELD = 'telephoneNumber'
 controller = 'ckanext.repoze.who.shibboleth.controller:ShibbolethController'
 login_url = url_for(controller=controller, action='shiblogin')
 logout_url = url_for(controller='user', action='logout')
+
 
 def create_plugin(kwargs={}):
     defaults = kwargs
@@ -39,6 +41,7 @@ def create_plugin(kwargs={}):
 class TestShibbolethUrls(FunctionalTestCase, unittest.TestCase):
     def setUp(self, *args, **kwargs):
         self.plugin = create_plugin(**kwargs)
+        kata_model.setup()
 
     def test_login(self):
         headers = {AUTH_FIELD: 'shibboleth',
@@ -67,6 +70,7 @@ class TestShibbolethPlugin(unittest.TestCase):
 
     def setUp(self, *args, **kwargs):
         self.plugin = create_plugin(**kwargs)
+        kata_model.setup()
 
     def test_plugin_field_names(self):
         self.assertNotEqual(self.plugin, None)
@@ -197,9 +201,3 @@ class TestShibbolethPlugin(unittest.TestCase):
 
     def test_forget(self):
         self.assertEqual(self.plugin.forget({}, {}), None)
-
-
-
-
-
-
