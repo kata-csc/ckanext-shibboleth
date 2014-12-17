@@ -55,7 +55,6 @@ class ShibbolethIdentifierPlugin(ShibbolethBase):
         self.login_form_url = url_for(controller='user', action='login')
         self.logout_url = url_for(controller='user', action='logout')
 
-
     # IChallenger
     def challenge(self, environ, status, app_headers, forget_headers):
         request = Request(environ)
@@ -79,7 +78,6 @@ class ShibbolethIdentifierPlugin(ShibbolethBase):
         response.status = 302
         response.location = url
         return response
-
 
     def identify(self, environ):
         request = Request(environ)
@@ -108,16 +106,9 @@ class ShibbolethIdentifierPlugin(ShibbolethBase):
 
         # Login user, if there's shibboleth headers and path is shiblogin
         if self.is_shib_session(environ) and request.path == self.login_url:
-        # log.debug("Trying to authenticate with shibboleth")
-        # log.debug('environ AUTH TYPE: %s', environ.get('AUTH_TYPE', 'None'))
-        # log.debug('environ Shib-Session-ID: %s', environ.get(self.session, 'None'))
-        # log.debug('environ mail: %s', environ.get(self.mail, 'None'))
-        # log.debug('environ cn: %s', environ.get(self.name, 'None'))
-
             user = self._get_or_create_user(environ)
 
             if not user:
-            # log.debug('User is None')
                 return {}
 
             # TODO: Fix flash message later, maybe some other place
@@ -127,7 +118,16 @@ class ShibbolethIdentifierPlugin(ShibbolethBase):
             #                        'IdP not aquired')))
             response = Response()
             response.status = 302
-            response.location = url_for(controller='user', action='read')
+
+            url = request.params.get('came_from', None)
+            if not url:
+                url = url_for(controller='package', action='search')
+                locale = environ.get('CKAN_LANG', None)
+                default_locale = environ.get('CKAN_LANG_IS_DEFAULT', True)
+                if not default_locale and locale:
+                    url = "/%s%s" % (locale, url)
+            response.location = url
+
             environ['repoze.who.application'] = response
 
             return {'repoze.who.plugins.openid.userid': user.openid,
@@ -235,4 +235,3 @@ class ShibbolethIdentifierPlugin(ShibbolethBase):
     def forget(self, environ, identity):
         rememberer = self._get_rememberer(environ)
         return rememberer and rememberer.forget(environ, identity)
-

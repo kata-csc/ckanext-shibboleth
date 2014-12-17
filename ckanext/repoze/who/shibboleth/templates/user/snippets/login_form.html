@@ -18,7 +18,9 @@ Example:
   {{ form.errors(errors=error_summary) }}
   <p>{{ _("Authentication by using Haka login") }}</p><br />
   <div class="controls">
-    <a tabindex="1" href="{{ h.url_for(controller='ckanext.repoze.who.shibboleth.controller:ShibbolethController', action='shiblogin') }}">
+    {% set came_from = h.get_request_param('came_from') %}
+    {% set login_url = h.url_for(controller='ckanext.repoze.who.shibboleth.controller:ShibbolethController', action='shiblogin', came_from=came_from or '') %}
+    <a tabindex="1" href="{{ login_url }}">
       <img src="/base/images/haka_landscape_large.gif"/>
     </a>
   </div>
