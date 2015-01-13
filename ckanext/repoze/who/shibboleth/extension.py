@@ -1,22 +1,19 @@
-# import logging
-import os
+'''
+Shibboleth plugin for CKAN
+'''
 
-from routes import url_for
+import os
 
 import ckan.plugins as plugins
 import ckan.plugins.toolkit as toolkit
 import ckanext.shibboleth.actions as actions
 
-# log = logging.getLogger(__name__)
-
-
-def shib_urls():
-    return [url_for(controller='user', action='login'),
-            url_for(controller='user', action='register'),
-            url_for(controller='user', action='logged_out_page')]
-
 
 class CkanShibbolethPlugin(plugins.SingletonPlugin):
+    '''
+    Shibboleth plugin for CKAN
+    '''
+
     plugins.implements(plugins.IRoutes, inherit=True)
     plugins.implements(plugins.IConfigurer)
     plugins.implements(plugins.IActions, inherit=True)
@@ -40,9 +37,6 @@ class CkanShibbolethPlugin(plugins.SingletonPlugin):
                     action='shiblogin')
         return map
     
-    def after_map(self, map):
-        return map
-
     def get_actions(self):
         """ Register actions. """
         return {'user_show': actions.user_show,
