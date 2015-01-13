@@ -1,4 +1,7 @@
 # -*- coding: utf8 -*-
+'''
+Repoze.who plugin for ckanext-shibboleth
+'''
 
 import logging
 
@@ -55,8 +58,21 @@ class ShibbolethIdentifierPlugin(ShibbolethBase):
         self.login_form_url = url_for(controller='user', action='login')
         self.logout_url = url_for(controller='user', action='logout')
 
-    # IChallenger
     def challenge(self, environ, status, app_headers, forget_headers):
+        '''
+        repoze.who.interfaces.IChallenger.challenge.
+
+        "Conditionally initiate a challenge to the user to provide credentials."
+
+        "Examine the values passed in and return a WSGI application which causes a
+        challenge to be performed.  Return None to forego performing a challenge."
+
+        :param environ:  the WSGI environment
+        :param status:  status written into start_response by the downstream application.
+        :param app_headers:  the headers list written into start_response by the downstream application.
+        :param forget_headers:
+        :return:
+        '''
         request = Request(environ)
 
         locale_default = environ.get('CKAN_LANG_IS_DEFAULT', True)
@@ -77,13 +93,22 @@ class ShibbolethIdentifierPlugin(ShibbolethBase):
         response = Response()
         response.status = 302
         response.location = url
+
+        log.info("Shibboleth response: %s (%s)" % (response, response.location))
         return response
 
     def identify(self, environ):
+        """
+        repoze.who.interfaces.IIdentifier.identify.
+
+        "Extract credentials from the WSGI environment and turn them into an identity."
+
+        This is called (twice) for every page load.
+
+        :param environ:  the WSGI environment.
+        :return:
+        """
         request = Request(environ)
-        # log.debug('Request path: %s' % request.path)
-        # log.debug(pprint.pformat(request))
-        # log.debug('environ: {env}'.format(env=pprint.pformat(environ)))
 
         # Logout user
         if request.path == self.logout_url:
@@ -102,6 +127,7 @@ class ShibbolethIdentifierPlugin(ShibbolethBase):
             response.location = url
             environ['repoze.who.application'] = response
 
+            log.info("Shibboleth user logout successful: %r" % request)
             return {}
 
         # Login user, if there's shibboleth headers and path is shiblogin
@@ -126,9 +152,11 @@ class ShibbolethIdentifierPlugin(ShibbolethBase):
                 default_locale = environ.get('CKAN_LANG_IS_DEFAULT', True)
                 if not default_locale and locale:
                     url = "/%s%s" % (locale, url)
-            response.location = url
 
+            response.location = url
             environ['repoze.who.application'] = response
+
+            log.info("Shibboleth login successful: %r (%s)" % (user, response.location))
 
             return {'repoze.who.plugins.openid.userid': user.openid,
                     'login': user.email,
@@ -136,6 +164,7 @@ class ShibbolethIdentifierPlugin(ShibbolethBase):
                     'email': user.email,
                     'fullname': user.email}
 
+        # User not logging in or logging out, return empty dict
         return {}
 
     def _get_or_create_user(self, env):
@@ -229,9 +258,23 @@ class ShibbolethIdentifierPlugin(ShibbolethBase):
         return plugins.get('auth_tkt')
 
     def remember(self, environ, identity):
+        '''
+        Return a sequence of response headers which suffice to remember the given identity.
+
+        :param environ:
+        :param identity:
+        :return:
+        '''
         rememberer = self._get_rememberer(environ)
         return rememberer and rememberer.remember(environ, identity)
 
     def forget(self, environ, identity):
+        '''
+        Return a sequence of response headers which suffice to destroy any credentials used to establish an identity.
+
+        :param environ:
+        :param identity:
+        :return:
+        '''
         rememberer = self._get_rememberer(environ)
         return rememberer and rememberer.forget(environ, identity)
