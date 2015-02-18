@@ -50,10 +50,9 @@ who.ini configuration:
 
 	[challengers]
 	plugins =
-		openid
-		friendlyform;browser
+		shibboleth
 
-shibboleth sp
+Shibboleth service provider (sp)
 -------------
 
 If you can login to IdP but CKAN is not logging you in, try removing REMOTE_USER from 
