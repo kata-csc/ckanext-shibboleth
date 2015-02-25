@@ -203,8 +203,9 @@ class ShibbolethIdentifierPlugin(ShibbolethBase):
                 user.fullname = fullname
                 user.email = email
             for key, val in old_extras.iteritems():
-                if extras[key] != val:
-                    log.debug('User extra attribute {att} modified, updating.'.format(att=key))
+                if extras.get(key) and extras[key] != val:
+                    log.debug('User extra attribute {att} modified, updating '
+                              'from Shibboleth.'.format(att=key))
                     extra = kmodel.UserExtra.by_userid_key(user.id, key=key)
                     extra.value = extras[key]
             # Check for new attributes
