@@ -43,8 +43,8 @@ Example:
     </div>
 
     <div class="form-group">
-      <input id="field-login" type="text" name="login" value="" placeholder="Username" tabindex="2">
-      <input id="field-password" type="password" name="password" value="" placeholder="Password" tabindex="3">
+      <input id="field-login" type="text" name="login" value="" placeholder="{{ _('Username') }}" tabindex="2">
+      <input id="field-password" type="password" name="password" value="" placeholder="{{ _('Password') }}" tabindex="3">
 
       <label class="checkbox login-inline" for="field-remember">
         <input id="field-remember" type="checkbox" name="remember" value="63072000" checked="" tabindex="4"> Remember me
@@ -53,7 +53,7 @@ Example:
         {#{ form.input('login', label=_("Username"), id='field-login', value="", error=username_error, attrs={'tabindex':'2'}) }#}
         {#{ form.input('password', label=_("Password"), id='field-password', type="password", value="", error=password_error, attrs={'tabindex':'3'}) }#}
         {#{ form.checkbox('remember', label=_("Remember me"), id='field-remember', checked=true, value="63072000", attrs={'tabindex':'4'}) }#}
-      <button class="btn btn-primary login-inline" type="submit" tabindex="5">{{ _('Log in') }}</button>
+      <button class="btn btn-primary login-inline button-wrapper" type="submit" tabindex="5">{{ _('Log in') }}</button>
     </div>
   </div>
 
