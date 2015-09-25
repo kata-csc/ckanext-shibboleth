@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  Kata\n"
 "Report-Msgid-Bugs-To: kata-project@postit.csc.fi\n"
-"POT-Creation-Date: 2014-07-02 11:18+0300\n"
+"POT-Creation-Date: 2015-09-25 06:49+0000\n"
 "PO-Revision-Date: 2014-07-02 09:03+0300\n"
 "Last-Translator: Pinja Koskinen <kata-project@postit.csc.fi>\n"
 "Language-Team: Finnish <kata-project@postit.csc.fi>\n"
@@ -17,27 +17,31 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 0.9.6\n"
 
-#: ckanext/repoze/who/shibboleth/templates/user/snippets/login_form.html:19
-msgid "Authentication by using Haka login"
-msgstr "Sisäänkirjautuminen Haka-tunnuksilla"
+#: ckanext/repoze/who/shibboleth/controller.py:24
+msgid "No user info received for login"
+msgstr "Käyttäjätietoja kirjautumiseen ei saatu"
 
-#: ckanext/repoze/who/shibboleth/templates/user/snippets/login_form.html:29
+#: ckanext/repoze/who/shibboleth/templates/user/snippets/login_form.html:25
+msgid "Login"
+msgstr "Kirjaudu sisään"
+
+#: ckanext/repoze/who/shibboleth/templates/user/snippets/login_form.html:26
+msgid "Currently Etsin only provides login using Haka."
+msgstr "Parhaillaan Etsin tukee ainoastaan Haka-kirjautumista."
+
+#: ckanext/repoze/who/shibboleth/templates/user/snippets/login_form.html:42
 msgid "Authentication by using local account"
 msgstr "Sisäänkirjautuminen paikallisilla tunnuksilla"
 
-#: ckanext/repoze/who/shibboleth/templates/user/snippets/login_form.html:30
+#: ckanext/repoze/who/shibboleth/templates/user/snippets/login_form.html:46
 msgid "Username"
 msgstr "Käyttäjänimi"
 
-#: ckanext/repoze/who/shibboleth/templates/user/snippets/login_form.html:31
+#: ckanext/repoze/who/shibboleth/templates/user/snippets/login_form.html:47
 msgid "Password"
 msgstr "Salasana"
 
-#: ckanext/repoze/who/shibboleth/templates/user/snippets/login_form.html:32
-msgid "Remember me"
-msgstr "Muista minut"
-
-#: ckanext/repoze/who/shibboleth/templates/user/snippets/login_form.html:35
+#: ckanext/repoze/who/shibboleth/templates/user/snippets/login_form.html:56
 msgid "Log in"
 msgstr "Kirjaudu sisään"
 
