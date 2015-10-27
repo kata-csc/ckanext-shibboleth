@@ -3,7 +3,7 @@ import unittest
 from routes import url_for
 
 import ckan.model as model
-from ckan.tests.functional.base import FunctionalTestCase
+from ckan.tests.legacy.functional.base import FunctionalTestCase
 from ckanext.repoze.who.shibboleth.plugin import make_identification_plugin, SHIBBOLETH
 import ckanext.kata.model as kata_model
 
