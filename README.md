@@ -1,4 +1,4 @@
-Shibboleth identification plugin for CKAN 2.1. Uses repoze.who.openid plugin for authentication.
+Shibboleth identification plugin for CKAN 2.4.1. Uses repoze.who.openid plugin for authentication.
 
 Install
 -------
@@ -34,18 +34,18 @@ who.ini configuration:
 
 	[general]
 	request_classifier = repoze.who.classifiers:default_request_classifier
-	challenge_decider = repoze.who.plugins.openid.classifiers:openid_challenge_decider
+	challenge_decider = repoze.who.classifiers:default_challenge_decider
 
 	[identifiers]
 	plugins =
 		shibboleth
 		friendlyform;browser
-		openid
 		auth_tkt
 
 	[authenticators]
 	plugins = 
-		ckan.lib.authenticator:OpenIDAuthenticator
+		ckanext.shibboleth.authenticator:ShibbolethAuthenticator
+		auth_tkt
 		ckan.lib.authenticator:UsernamePasswordAuthenticator
 
 	[challengers]
