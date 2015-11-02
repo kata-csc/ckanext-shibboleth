@@ -1,9 +1,10 @@
+"""Tests for ckanext-shibboleth CKAN extension"""
+
 import unittest
 
 from routes import url_for
 
 import ckan.model as model
-from ckan.tests.legacy.functional.base import FunctionalTestCase
 from ckanext.repoze.who.shibboleth.plugin import make_identification_plugin, SHIBBOLETH
 import ckanext.kata.model as kata_model
 
@@ -71,6 +72,7 @@ class TestShibbolethPlugin(unittest.TestCase):
 
     def setUp(self, *args, **kwargs):
         self.plugin = create_plugin(**kwargs)
+        model.repo.rebuild_db()
         kata_model.setup()
 
     def test_plugin_field_names(self):
@@ -99,12 +101,10 @@ class TestShibbolethPlugin(unittest.TestCase):
         self.assertEqual(identity, {})
 
     def test_create_user(self):
-        import re
         user_dict = {EPPN_FIELD: u'foo@bar.com',
                      MAIL_FIELD: u'foo@bar.com',
                      FULLNAME_FIELD: 'Foo Bar',
                      AUTH_FIELD: SHIBBOLETH}
-        #username = re.sub('[.@]', '_', user_dict[MAIL_FIELD])
         username = unicode(user_dict[FULLNAME_FIELD], errors='ignore').lower().replace(' ', '_')
         user = self.plugin._get_or_create_user(user_dict)
 
@@ -114,12 +114,10 @@ class TestShibbolethPlugin(unittest.TestCase):
         self.assertEqual(user.fullname, user_dict[FULLNAME_FIELD])
 
     def test_get_or_create_user(self):
-        import re
         user_dict = {EPPN_FIELD: u'newfoo@bar.com',
                      MAIL_FIELD: u'newfoo@bar.com',
                      FULLNAME_FIELD: 'New Foo Bar',
                      AUTH_FIELD: SHIBBOLETH}
-        #username = re.sub('[.@]', '_', user_dict[MAIL_FIELD])
         username = unicode(user_dict[FULLNAME_FIELD], errors='ignore').lower().replace(' ', '_')
 
         user = model.User(name = username,
