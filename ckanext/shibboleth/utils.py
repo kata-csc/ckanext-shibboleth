@@ -20,7 +20,7 @@ def fetch_user_extra(userid):
     for extra in kmodel.UserExtra.by_userid(userid):
         key = extra.as_dict()['key']
         value = extra.as_dict()['value']
-        extra_dict.update({key:value})
+        extra_dict.update({key: value})
     return extra_dict
 
 

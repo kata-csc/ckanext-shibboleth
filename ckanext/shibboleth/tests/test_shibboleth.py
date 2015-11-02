@@ -39,6 +39,7 @@ def create_plugin(kwargs={}):
 
     return make_identification_plugin(**defaults)
 
+
 # TODO: Fix
 # class TestShibbolethUrls(FunctionalTestCase, unittest.TestCase):
 #     def setUp(self, *args, **kwargs):
@@ -120,10 +121,10 @@ class TestShibbolethPlugin(unittest.TestCase):
                      AUTH_FIELD: SHIBBOLETH}
         username = unicode(user_dict[FULLNAME_FIELD], errors='ignore').lower().replace(' ', '_')
 
-        user = model.User(name = username,
-                          fullname = user_dict[FULLNAME_FIELD],
-                          email = user_dict[MAIL_FIELD],
-                          openid = user_dict[EPPN_FIELD])
+        user = model.User(name=username,
+                          fullname=user_dict[FULLNAME_FIELD],
+                          email=user_dict[MAIL_FIELD],
+                          openid=user_dict[EPPN_FIELD])
 
         model.Session.add(user)
         model.Session.commit()
@@ -139,36 +140,36 @@ class TestShibbolethPlugin(unittest.TestCase):
 
     def test_identity_with_invalid_shib_session(self):
         # Wrong login url
-        identity_1 = self.plugin.identify({'PATH_INFO':'/foo/gives/a/bar/',
-                                        SESSION_FIELD:SESSION_FIELD_VAL,
-                                        MAIL_FIELD:u'foo@bar.com',
-                                        FULLNAME_FIELD:u'Foo Bar',
-                                        AUTH_FIELD:'shibboleth'})
+        identity_1 = self.plugin.identify({'PATH_INFO': '/foo/gives/a/bar/',
+                                           SESSION_FIELD: SESSION_FIELD_VAL,
+                                           MAIL_FIELD: u'foo@bar.com',
+                                           FULLNAME_FIELD: u'Foo Bar',
+                                           AUTH_FIELD: 'shibboleth'})
 
         # Wrong authentication type
-        identity_2 = self.plugin.identify({'PATH_INFO':login_url,
-                                        SESSION_FIELD:SESSION_FIELD_VAL,
-                                        MAIL_FIELD:u'foo@bar.com',
-                                        FULLNAME_FIELD:u'Foo Bar',
-                                        AUTH_FIELD:'FooAuth'})
+        identity_2 = self.plugin.identify({'PATH_INFO': login_url,
+                                           SESSION_FIELD: SESSION_FIELD_VAL,
+                                           MAIL_FIELD: u'foo@bar.com',
+                                           FULLNAME_FIELD: u'Foo Bar',
+                                           AUTH_FIELD: 'FooAuth'})
 
         # Missing name field
-        identity_3 = self.plugin.identify({'PATH_INFO':login_url,
-                                        SESSION_FIELD:SESSION_FIELD_VAL,
-                                        MAIL_FIELD:u'foo@bar.com',
-                                        AUTH_FIELD:SHIBBOLETH})
+        identity_3 = self.plugin.identify({'PATH_INFO': login_url,
+                                           SESSION_FIELD: SESSION_FIELD_VAL,
+                                           MAIL_FIELD: u'foo@bar.com',
+                                           AUTH_FIELD: SHIBBOLETH})
 
         # Missing mail field
-        identity_4 = self.plugin.identify({'PATH_INFO':login_url,
-                                        SESSION_FIELD:SESSION_FIELD_VAL,
-                                        FULLNAME_FIELD:u'Foo Bar',
-                                        AUTH_FIELD:SHIBBOLETH})
+        identity_4 = self.plugin.identify({'PATH_INFO': login_url,
+                                           SESSION_FIELD: SESSION_FIELD_VAL,
+                                           FULLNAME_FIELD: u'Foo Bar',
+                                           AUTH_FIELD: SHIBBOLETH})
 
         # Missing session field
-        identity_5 = self.plugin.identify({'PATH_INFO':login_url,
-                                        MAIL_FIELD:u'foo@bar.com',
-                                        FULLNAME_FIELD:u'Foo Bar',
-                                        AUTH_FIELD:SHIBBOLETH})
+        identity_5 = self.plugin.identify({'PATH_INFO': login_url,
+                                           MAIL_FIELD: u'foo@bar.com',
+                                           FULLNAME_FIELD: u'Foo Bar',
+                                           AUTH_FIELD: SHIBBOLETH})
 
         self.assertEqual(identity_1, {})
         self.assertEqual(identity_2, {})

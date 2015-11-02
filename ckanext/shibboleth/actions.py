@@ -119,11 +119,11 @@ def user_update(context, data_dict):
         'user_id': user.id,
         'object_id': user.id,
         'activity_type': 'changed user',
-        }
+    }
     activity_create_context = {
         'model': model,
         'user': user,
-        'defer_commit':True,
+        'defer_commit': True,
         'session': session
     }
     _get_action('activity_create')(activity_create_context, activity_dict, ignore_auth=True)

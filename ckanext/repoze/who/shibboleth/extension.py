@@ -2,8 +2,6 @@
 Shibboleth plugin for CKAN
 '''
 
-import os
-
 import ckan.plugins as plugins
 import ckan.plugins.toolkit as toolkit
 import ckanext.shibboleth.actions as actions
@@ -36,10 +34,10 @@ class CkanShibbolethPlugin(plugins.SingletonPlugin):
                     controller=controller,
                     action='shiblogin')
         return map
-    
+
     def get_actions(self):
         """ Register actions. """
         return {'user_show': actions.user_show,
                 'user_update': actions.user_update,
-            #   'user_create': actions.user_create,
-        }
+                #   'user_create': actions.user_create,
+                }
