@@ -94,7 +94,7 @@ class ShibbolethIdentifierPlugin(ShibbolethBase):
         response.status = 302
         response.location = url
 
-        log.info("Shibboleth response: %s (%s)" % (response, response.location))
+        log.info("Shibboleth response (challenge): %s (%s)" % (response, response.location))
         return response
 
     def identify(self, environ):
@@ -127,13 +127,13 @@ class ShibbolethIdentifierPlugin(ShibbolethBase):
             response.location = url
             environ['repoze.who.application'] = response
 
-            log.info("Shibboleth user logout successful: %r" % request)
+            log.debug("Shibboleth user logout successful.")
             return {}
 
-        # Login user, if there's shibboleth headers and path is shiblogin
+        # Login user
         if self.is_shib_session(environ) and request.path == self.login_url:
-            user = self._get_or_create_user(environ)
 
+            user = self._get_or_create_user(environ)
             if not user:
                 return {}
 
@@ -188,9 +188,11 @@ class ShibbolethIdentifierPlugin(ShibbolethBase):
             extras[field] = env.get(self.extra_keys[field], None)
 
         if not eppn or not fullname:
-            log.debug(
-                'Environ does not contain eppn or cn attributes, user not loaded.')
+            log.debug('Not enough information received for user: {eppn}, {name}, {mail}, {extras}'.
+                      format(eppn=eppn, name=fullname, mail=email, extras=extras))
             return None
+
+        log.info("Login attempt for user: %s" % (eppn,))
 
         user = model.Session.query(model.User).autoflush(False) \
             .filter_by(openid=eppn).first()
@@ -256,6 +258,8 @@ class ShibbolethIdentifierPlugin(ShibbolethBase):
 
     def _get_rememberer(self, environ):
         plugins = environ.get('repoze.who.plugins', {})
+        log.debug('Using repoze.who plugin %s  (Total amount of plugins is %s)' %
+                  (plugins.get('auth_tkt'), len(plugins)))
         return plugins.get('auth_tkt')
 
     def remember(self, environ, identity):
