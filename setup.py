@@ -24,7 +24,6 @@ setup(
                         'ckanext.repoze.who.shibboleth'],
     include_package_data=True,
     zip_safe=False,
-    install_requires=[],
     setup_requires=['nose>=1.0', 'coverage'],
     tests_require=['nose'],
     message_extractors = {
