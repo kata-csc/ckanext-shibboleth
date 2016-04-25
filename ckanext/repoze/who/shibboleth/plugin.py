@@ -9,6 +9,7 @@ from repoze.who.interfaces import IIdentifier, IChallenger
 from routes import url_for
 from webob import Request, Response
 from zope.interface import implements
+import urllib
 
 import ckan.model as model
 import ckanext.kata.model as kmodel
@@ -153,7 +154,7 @@ class ShibbolethIdentifierPlugin(ShibbolethBase):
                 if not default_locale and locale:
                     url = "/%s%s" % (locale, url)
 
-            response.location = url
+            response.location = urllib.unquote(url).decode('utf8')
             environ['repoze.who.application'] = response
 
             log.info("Shibboleth login successful: %r (%s)" % (user, response.location))
