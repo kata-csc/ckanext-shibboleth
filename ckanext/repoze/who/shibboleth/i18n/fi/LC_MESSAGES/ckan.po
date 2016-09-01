@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  Kata\n"
 "Report-Msgid-Bugs-To: kata-project@postit.csc.fi\n"
-"POT-Creation-Date: 2015-09-25 06:49+0000\n"
+"POT-Creation-Date: 2016-09-01 07:49+0000\n"
 "PO-Revision-Date: 2014-07-02 09:03+0300\n"
 "Last-Translator: Pinja Koskinen <kata-project@postit.csc.fi>\n"
 "Language-Team: Finnish <kata-project@postit.csc.fi>\n"
@@ -26,8 +26,8 @@ msgid "Login"
 msgstr "Kirjaudu sisään"
 
 #: ckanext/repoze/who/shibboleth/templates/user/snippets/login_form.html:26
-msgid "Currently Etsin only provides login using Haka."
-msgstr "Parhaillaan Etsin tukee ainoastaan Haka-kirjautumista."
+msgid "Log in to Etsin using your Haka credentials."
+msgstr "Kirjaudu Etsimeen Haka-tunnuksellasi."
 
 #: ckanext/repoze/who/shibboleth/templates/user/snippets/login_form.html:42
 msgid "Authentication by using local account"
